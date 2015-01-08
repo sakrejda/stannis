@@ -1,0 +1,14 @@
+Package: parsestan
+Type: Package
+Title: Handles output from Stan (mc-stan.org)
+Version: 1.0
+Date: 2015-01-07
+Author: Krzysztof Sakrejda
+Maintainer: Krzysztof Sakrejda <sakrejda@umass.edu>
+Description: Alternative organization.
+License: GPL-2
+Imports:
+    Rcpp (>= 0.11.3)
+Depends:
+		Integrator
+LinkingTo: Rcpp
