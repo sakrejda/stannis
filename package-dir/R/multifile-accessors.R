@@ -48,7 +48,7 @@ stan_commander <- setRefClass(Class="stan_commander",
 		},
 		do_hashes = function() {
 			"Calculates current hashes of files in 'paths' field."
-			new_hashes <- mapply(FUN=digest, file=paths, MoreArgs=list(algo='sha256'))
+			new_hashes <- mapply(FUN=digest, file=paths, MoreArgs=list(algo='sha256', length=10^3))
 			return(new_hashes)
 		},
 		stale_hashes = function() {
