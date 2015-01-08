@@ -86,7 +86,7 @@ parse_parameters <- function(file=NULL) {
 	lines <- readLines(file, n=5*10^3)
 	comment_lines <- grab_comment_lines(lines)
 	eq_lines <- grab_control_lines(comment_lines)
-	if (grepl(x=eq_lines['run_arguments'], pattern='sample', fixed=TRUE)) {
+	if (grepl(x=eq_lines['method'], pattern='sample', fixed=TRUE)) {
 		imm_diagonal <- grab_imm_diagonal(comment_lines)
 		type <- 'sample'
 	} else {
