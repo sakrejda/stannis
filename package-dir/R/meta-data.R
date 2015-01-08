@@ -61,7 +61,7 @@ find_file <- function(directory=NULL, file='context.sh') {
       nc <- length(new_directory)                                                                                                       
       if (nc < 3) stop("model-data.sh not found.")                                                                                      
       new_directory <- do.call(what=file.path, args=as.list(new_directory[1:(nc-1)]))                                                   
-      return(find_file(new_directory, file))   
+      return(find_file(new_directory, basename(file)))   
     }                                                                                                                                   
   }                                                                                                                                     
 }                          
