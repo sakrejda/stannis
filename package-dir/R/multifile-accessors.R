@@ -1,3 +1,4 @@
+
 #' A reference class allows access to output from multiple CmdStan .csv
 #' files efficiently.
 #'
@@ -18,7 +19,6 @@ stan_commander <- setRefClass(Class="stan_commander",
 		ids = "character",
 		model_parameters = "list",
 		internal_parameters = "list",
-		names = "character",
 		meta = "list",
 		dimensions = "list",
 		estimates = "list",
@@ -76,20 +76,9 @@ stan_commander <- setRefClass(Class="stan_commander",
 			model_parameters <<- lapply(parameters, function(x) x[!grepl(pattern='__$', x=x)])
 			internal_parameters <<- lapply(parameters, function(x) x[grepl(pattern='__$', x=x)])
 			dims <- sapply(meta, `[[`, 'dimensions')   ## Local
-			dimensions <<- dims[dims %in% model_parameters]
+			dimensions <<- lapply(dims, function(d) d[names(d) %in% model_parameters[[1]]])
 			current_type__ <<- 'sample'
 			current_id__ <<- '1';
-
-			## Local:
-			method_1_names <- unlist(model_parameters, use.names=FALSE) %>% unique %>% sort
-			method_2_names <- model_parameters[[1]] %>% sort
-			if (all(method_1_names == method_2_names))
-				model_parameter_names <- method_1_names
-			else 
-				model_parameter_names <- NULL
-			## Local 																	
-
-			names(.self) <- model_parameter_names
 			do_reload()
 		},
 		do_meta = function() {
