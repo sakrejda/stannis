@@ -78,6 +78,7 @@ stan_commander <- setRefClass(Class="stan_commander",
 			dimensions <<- dims[dims %in% model_parameters]
 			current_type__ <<- 'sample'
 			current_id__ <<- '1'
+			names(.self) <- model_parameters
 			do_reload()
 		},
 		do_meta = function() {
