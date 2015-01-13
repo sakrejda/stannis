@@ -7,17 +7,21 @@ setMethod(
 	signature = signature(x="stan_commander"),
 	definition = function(x) {
 		noms <- with(data=x, expr={
-			## Not a complete check
-			method_1_names <- unlist(model_parameters, use.names=FALSE) %>% unique %>% sort
-			method_2_names <- model_parameters[[1]] %>% sort
-			if (all(method_1_names != method_2_names))
-			  warning("Model parameters are inconsistent among files.")
-			method_1_names
+			id <- as.numeric(current_id__)
+			model_parameters[[id]]
 		})
 		return(noms)
 	}
 )
 
+setMethod(
+  f=getGeneric("dim"),
+	signature=signature(x="stan_commander"),
+	definition = function(x) {
+		id <- as.numeric(current_id__)
+		return(x[['dimensions']][[id]])
+	}
+)
 	
 #' Accessor to get a vector of samples for a parameter.
 #' 
