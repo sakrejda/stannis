@@ -72,8 +72,8 @@ stan_commander <- setRefClass(Class="stan_commander",
 			type <<- sapply(meta, `[[`, 'type')
 			ids <<- sapply(meta, `[[`, 'try')
 			parameters <- lapply(meta, `[[`, 'parameter_names')  ## Local 
-			model_parameters <<- parameters[!grepl(pattern='__$', x=parameters)]
-			internal_parameters <<- parameters[grepl(pattern='__$', x=parameters)]
+			model_parameters <<- lapply(parameters, function(x) x[!grepl(pattern='__$', x=x)])
+			internal_parameters <<- lapply(parameters, function(x) x[grepl(pattern='__$', x=x)])
 			dims <- sapply(meta, `[[`, 'dimensions')   ## Local
 			dimensions <<- dims[dims %in% model_parameters]
 			current_type__ <<- 'sample'
@@ -109,25 +109,5 @@ stan_commander <- setRefClass(Class="stan_commander",
 	)
 )
 	
-## Below works if j is just one number... now generalize... :/
-setMethod(
-	f="[",
-	signature = signature(x='stan_commander', i='character', j="numeric"),
-	definition = function(x, i, j) {
-		o <- do.call(what=x$get_parameter, args=list(i, j))
-		return(o)
-	}
-)
-
-#setMethod(
-#	f="[<-",
-#	signature = signature(x='block_distribution', i='character',j='character'),
-#	definition = function(x, i, j, value) {
-#		x$write(x=value, from=i, to=j)
-#	return(x)
-#}
-#)
-#
-
 
 
