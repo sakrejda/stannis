@@ -41,11 +41,7 @@ setMethod(
 			msg <- paste0("Name '", i, "' is not a parameter in object '", as.character(substitute(x)), "'.\n")
 			stop(msg)
 		}
-		if (missing(j) || is.null(j)) {
-			o <- do.call(what=x$get_parameter, args=list(i, ...))
-		} else {
-			o <- do.call(what=x$get_parameter, args=list(i, j, ...))
-		}
+		o <- do.call(what=x$get_parameter, args=list(i, j, ...))
 		return(o)
 	}
 )

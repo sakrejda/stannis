@@ -100,15 +100,11 @@ stan_commander <- setRefClass(Class="stan_commander",
 			"Check if 'args' are reasonable dimensions for 'name' parameter."
 			id <- as.numeric(current_id__)
 			local_dims <- dimensions[[id]][[name]]
-			if (length(args) != 0) {
-				if (length(args) != length(local_dims)) 
-					stop(paste0("Wrong dimensionality for parameter '", name, "'."))
-				for ( i in seq_along(args)) {
-					if ( (args[i] < 1) || (args[i] > local_dims[i])) 
-						stop(paste0("Index ", i, " out of bounds."))
-				}
-			} else if (local_dims != 0) {
-					stop(paste0("Wrong dimensionality for parameter '", name, "'."))
+			if (length(args) != length(local_dims)) 
+				stop(paste0("Wrong dimensionality for parameter '", name, "'."))
+			for ( i in seq_along(args)) {
+				if ( (args[i] < 1) || (args[i] > local_dims[i])) 
+					stop(paste0("Index ", i, " out of bounds."))
 			}
 		},
 		get_parameter = function(x, ...) {
@@ -117,7 +113,7 @@ stan_commander <- setRefClass(Class="stan_commander",
 			dots <- list(...)
 			indexes <- unlist(dots)
 			column_name <- make_name(x, indexes)
-			check_dimensions(x, dots)
+			check_dimensions(name, dots)
 			type_mask <- type %in% current_type__
 			o <- lapply(estimates[type_mask], `[`, , j=column_name, drop=FALSE)
 			o <- do.call(what=rbind, args=o)
