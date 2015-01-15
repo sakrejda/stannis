@@ -96,12 +96,23 @@ stan_commander <- setRefClass(Class="stan_commander",
 			} 
 			return(name)
 		},
+		check_dimensions = function(name, args) {
+			id <- as.numeric(current_id__)
+			local_dims <- dimensions[[id]][[name]]
+			if (length(args) != length(local_dims)) 
+				stop(paste0("Wrong dimensionality for parameter '", name, "'."))
+			for ( i in seq_along(args)) {
+				if ( (args[i] < 1) || (args[i] > local_dims[i])) 
+					stop(paste0("Index ", i, " out of bounds."))
+			}
+		},
 		get_parameter = function(x, ...) {
 			"Implementation for the subset operator '['... used directly or via an S4 method."
 			check_hashes()
 			dots <- list(...)
 			indexes <- unlist(dots)
 			column_name <- make_name(x, indexes)
+			check_dimensions(name, dots)
 			type_mask <- type %in% current_type__
 			o <- lapply(estimates[type_mask], `[`, , j=column_name, drop=FALSE)
 			o <- do.call(what=rbind, args=o)

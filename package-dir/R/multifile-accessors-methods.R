@@ -26,10 +26,14 @@ setMethod(
 #' Accessor to get a vector of samples for a parameter.
 #' 
 setMethod(
-	f="[",
-	signature = signature(x='stan_commander', i='character'),
-	definition = function(x, i, ...) {
-		o <- do.call(what=x$get_parameter, args=list(i, ...))
+	f=getGeneric("["),
+	signature = signature(x='stan_commander', i='character', j="ANY", drop="ANY"),
+	definition = function(x, i, j, ...) {
+		if (!(i %in% names(output))) {
+			msg <- paste0("Name '", i, "' is not a parameter in object '", as.character(substitute(x)), "'.\n")
+			stop(msg)
+		}
+		o <- do.call(what=x$get_parameter, args=list(i, j, ...))
 		return(o)
 	}
 )
