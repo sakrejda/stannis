@@ -2,21 +2,17 @@
 % Please edit documentation in R/stan-names.R
 \name{trim_whitespace}
 \alias{trim_whitespace}
-\title{Takes names from Stan .csv files and produces an object with parsed
-info from comments as well as parameter/transformed parameter names,
-a matched R object class, and object dimensions.}
+\title{Trims whitespace from a string front and back.}
 \usage{
 trim_whitespace(s)
 }
 \arguments{
-\item{A}{vector of length 1, containing the file name of a Stan .csv output file.}
+\item{s}{the string}
+}
+\value{
+s without leading and trailing whitespace.
 }
 \description{
-Takes names from Stan .csv files and produces an object with parsed
-info from comments as well as parameter/transformed parameter names,
-a matched R object class, and object dimensions.
-}
-\examples{
-parameters <- parse_parameters(file='/tmp/stan.csv')
+Trims whitespace from a string front and back.
 }
 

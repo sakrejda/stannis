@@ -97,6 +97,7 @@ stan_commander <- setRefClass(Class="stan_commander",
 			return(name)
 		},
 		check_dimensions = function(name, args) {
+			"Check if 'args' are reasonable dimensions for 'name' parameter."
 			id <- as.numeric(current_id__)
 			local_dims <- dimensions[[id]][[name]]
 			if (length(args) != length(local_dims)) 

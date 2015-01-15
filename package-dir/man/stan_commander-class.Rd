@@ -32,6 +32,8 @@ files efficiently.
 \section{Methods}{
 
 \describe{
+\item{\code{check_dimensions(name, args)}}{Check if 'args' are reasonable dimensions for 'name' parameter.}
+
 \item{\code{check_hashes()}}{If hashes are stale, refresh the object and update hashes.}
 
 \item{\code{do_hashes()}}{Calculates current hashes of files in 'paths' field.}

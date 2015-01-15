@@ -3,7 +3,7 @@
 #' @param x stan_commander object.
 #' @return unique parameters contained in the object.
 setMethod(
-	f=getGeneric("names"),
+	f="names",
 	signature = signature(x="stan_commander"),
 	definition = function(x) {
 		noms <- with(data=x, expr={
@@ -14,8 +14,10 @@ setMethod(
 	}
 )
 
+#' Accessor to get dimensions of parameter for the currently chosen id/type.
+#' @param x stan_commander object.
 setMethod(
-  f=getGeneric("dim"),
+  f="dim",
 	signature=signature(x="stan_commander"),
 	definition = function(x) {
 		id <- as.numeric(current_id__)
@@ -25,8 +27,14 @@ setMethod(
 	
 #' Accessor to get a vector of samples for a parameter.
 #' 
+#' @param x stan_commander object
+#' @param i name of the parameter
+#' @param j first index, if any.
+#' @param ... additional indexing, if any.
+#' @param drop currently ignored.
+#' @details Does some checking, then delegates to a stan_commander member
 setMethod(
-	f=getGeneric("["),
+	f="[",
 	signature = signature(x='stan_commander', i='character', j="ANY", drop="ANY"),
 	definition = function(x, i, j, ...) {
 		if (!(i %in% names(output))) {
@@ -37,17 +45,5 @@ setMethod(
 		return(o)
 	}
 )
-
-
-#setMethod(
-#	f="[<-",
-#	signature = signature(x='block_distribution', i='character',j='character'),
-#	definition = function(x, i, j, value) {
-#		x$write(x=value, from=i, to=j)
-#	return(x)
-#}
-#)
-#
-
 
 
