@@ -65,11 +65,6 @@ modify_stan_functions <- function(input, output=NULL) {
 		writeLines(text=o, con=output)
 }
 
-segment <- function(x,i,n) return(x[i:(i+n-1)])
-num_elements <- length
-
-
-
 
 
 
