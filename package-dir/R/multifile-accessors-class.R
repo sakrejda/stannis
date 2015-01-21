@@ -89,10 +89,11 @@ stan_commander <- setRefClass(Class="stan_commander",
 			"Parse file estimates."
 			estimates <<- lapply(paths, read_stan_file)	
 		},
-		make_name = function(name, indexes) {
+		make_name = function(name, ...) {
 			"Paste together parameter name with indexes to generate csv column name."
+			indexes <- process_index_list(...)
 			if (!is.null(indexes)) {
-				name <- paste(name, paste(indexes, sep='', collapse='.'), sep='.')
+				name <- paste(name, indexes, sep='.')
 			} 
 			return(name)
 		},
@@ -114,12 +115,12 @@ stan_commander <- setRefClass(Class="stan_commander",
 		get_parameter = function(x, ...) {
 			"Implementation for the subset operator '['... used directly or via an S4 method."
 			check_hashes()
-			dots <- list(...)
-			indexes <- unlist(dots)
-			column_name <- make_name(x, indexes)
-			check_dimensions(x, dots)
+			#dots <- list(...)
+			#indexes <- unlist(dots)
+			column_names <- make_names(x, ...)
+			#check_dimensions(x, dots)
 			type_mask <- type %in% current_type__
-			o <- lapply(estimates[type_mask], `[`, , j=column_name, drop=FALSE)
+			o <- lapply(estimates[type_mask], `[`, , j=column_names, drop=FALSE)
 			o <- do.call(what=rbind, args=o)
 			return(o)
 		}

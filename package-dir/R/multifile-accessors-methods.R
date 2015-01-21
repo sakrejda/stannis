@@ -36,7 +36,7 @@ setMethod(
 setMethod(
 	f="[",
 	signature = signature(x='stan_commander', i='character', j="ANY", drop="ANY"),
-	definition = function(x, i, j=NULL, ...) {
+	definition = function(x, i, j=NULL, ..., drop=FALSE) {
 		if (!(i %in% names(output))) {
 			msg <- paste0("Name '", i, "' is not a parameter in object '", as.character(substitute(x)), "'.\n")
 			stop(msg)
