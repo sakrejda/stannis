@@ -41,11 +41,13 @@ files efficiently.
 
 \item{\code{do_reload()}}{Parse file estimates.}
 
+\item{\code{get_array(x, ...)}}{Implementation for the subset operator '[', returning an array.}
+
 \item{\code{get_parameter(x, ...)}}{Implementation for the subset operator '['... used directly or via an S4 method.}
 
 \item{\code{initialize(paths)}}{Loads data from files, and fill fields.}
 
-\item{\code{make_name(name, indexes)}}{Paste together parameter name with indexes to generate csv column name.}
+\item{\code{make_names(name, ...)}}{Paste together parameter name with indexes to generate csv column name.}
 
 \item{\code{refresh()}}{Reload object data from files.}
 

@@ -15,7 +15,7 @@ model_block <- setRefClass(Class="model_block",
 		effect_name__ = "character",
 		input_check__ = "function",
 		covariate__ = "list",
-		drops__ = "list",
+		drops__ = "function",
 		X__ = "matrix",
 		X = function(x=NULL) {
 			if (!is.null(x)) stop("Can not assign directly.")

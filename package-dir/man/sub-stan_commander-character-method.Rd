@@ -4,7 +4,7 @@
 \alias{[,stan_commander,character-method}
 \title{Accessor to get a vector of samples for a parameter.}
 \usage{
-\S4method{[}{stan_commander,character}(x, i, j, ..., drop = TRUE)
+\S4method{[}{stan_commander,character}(x, i, j = NULL, ..., drop = FALSE)
 }
 \arguments{
 \item{x}{stan_commander object}
