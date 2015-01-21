@@ -127,7 +127,7 @@ stan_commander <- setRefClass(Class="stan_commander",
 		get_array = function(x, ...) {
 			"Implementation for the subset operator '[', returning an array."
 			o <- get_parameter(x, ...)
-			o <- named_column_to_array(o)
+			o <- named_columns_to_arrays(o)
 			return(o)
 		}
 	)

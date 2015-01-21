@@ -42,9 +42,9 @@ setMethod(
 			stop(msg)
 		}
 		if (missing(j) || is.null(j)) {
-			o <- do.call(what=x$get_parameter, args=list(i, ...))
+			o <- do.call(what=x$get_array, args=list(i, ...))
 		} else {
-			o <- do.call(what=x$get_parameter, args=list(i, j, ...))
+			o <- do.call(what=x$get_array, args=list(i, j, ...))
 		}
 		return(o)
 	}

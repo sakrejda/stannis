@@ -7,11 +7,10 @@ process_index_list <- function(...) {
 }
 
 named_columns_to_parameter_names <- function(colname) {
-	o <- strpslit(x=colname, split='\\.') %>% lapply(`[`,1) %>% unique
+	o <- strsplit(x=colname, split='\\.') %>% lapply(`[`,1) %>% unique %>% `[[`(1)
 	return(o)
 }
 
-## This needs to consider multiple names within one (?)
 named_columns_to_dim_list <- function(colname) {
 	o <- strsplit(x=colname, split='\\.') %>% lapply(`[`,-1)
 	o <- do.call(what=rbind, args=o) %>% apply(2,as.numeric) %>% apply(2,function(x) max(x)-min(x)+1)
@@ -21,8 +20,10 @@ named_columns_to_dim_list <- function(colname) {
 
 
 named_columns_to_arrays <- function(data) {
-	names <- named_columns_to_parameter_names(names(data))
-	dim_list <- named_columns_to_dim_list(names(data))
-
+	names <- named_columns_to_parameter_names(colnames(data))
+	dim_list <- c(nrow(data),as.list(named_columns_to_dim_list(colnames(data))))
+	names(dim_list) <- c('iteration',letters[9:(9+length(dim_list)-2)])
+	o <- array(data=data, dim=dim_list, dimnames=names(dim_list))
+	return(o)
 }
 
