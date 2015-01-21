@@ -76,6 +76,7 @@ covariate_block <- setRefClass(Class="covariate_block", contains="model_block",
 			} else {
 				formula__ <<- default_formula(covariate) 
 			}
+			make_block(); X;
 		},
 		make_block = function() {
 			"Construct model matrix, delegate to model.matrix."
@@ -99,6 +100,7 @@ offset_block <- setRefClass(Class="offset_block", contains="covariate_block",
 			} else {
 				callSuper(name, covariate, formula, validation)
 			}
+			make_block(); X;
 		},
 		make_block = function() {
 			"Construct model matrix, delegate to model.matrix."
@@ -128,6 +130,7 @@ map_block <- setRefClass(Class="map_block", contains="model_block",
 			callSuper(name, covariate, validation)
 			reference_points__ <<- reference_points
 			weight_helper__ <<- weight_helper
+			make_block(); X;
 		},
 		make_block = function() {
 			"Construct model matrix, delegate to helper function, passing covariates and knot points."
@@ -152,6 +155,7 @@ discrete_map_block <- setRefClass(Class="discrete_map_block", contains="model_bl
 			callSuper(name, covariate, validation)
 			reference_points__ <<- reference_points
 			weight_helper__ <<- weight_helper
+			make_block(); X;
 		},
 		make_block = function() {
 			"Construct model matrix, delegate to helper function, passing covariates and knot points."
