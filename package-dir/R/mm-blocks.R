@@ -14,6 +14,7 @@ model_block <- setRefClass(Class="model_block",
 	fields = list(
 		effect_name__ = "character",
 		input_check__ = "function",
+		covariate__ = "list",
 		X__ = "matrix",
 		X = function(x=NULL) {
 			if (!is.null(x)) stop("Can not assign directly.")
@@ -30,15 +31,16 @@ model_block <- setRefClass(Class="model_block",
 		}
 	),
 	methods=list(
-		initialize = function(name, validation=NULL) {
+		initialize = function(name, covariate=list(), validation=NULL) {
 		"Initialize the base class with a name and validation function."
 			effect_name__ <<- name
+			covariate__ <<- covariate
 			if (is.null(validation)) {
 				input_check__ <<- function(x) rep(TRUE,x)
 			} else {
 				input_check__ <<- validation
 			}
-		},
+		}
 		make_block = function() {
 		"For the base class this is a placeholder which throws an error.  
 		 In all other subclasses this function arranges the covariates into the
@@ -62,16 +64,16 @@ covariate_block <- setRefClass(Class="covariate_block", contains="model_block",
 	methods = list(
 		initialize = function(name, covariate, formula=NULL, validation=NULL) {
 			"Builds on initialization for base class, but only by calling method to construct the block."
-			callSuper(name, validation)
+			callSuper(name, covariate, validation)
 			if (!is.null(formula)) {
 				formula__<<- formula
 			} else {
 				formula__ <<- default_formula(covariate) 
 			}
 		},
-		make_block = function(covariate) {
+		make_block = function() {
 			"Construct model matrix, delegate to model.matrix."
-			X__ <<- model.matrix(formula__, data=data)
+			X__ <<- model.matrix(formula__, data=covariate__)
 		}
 	)
 )
@@ -92,8 +94,9 @@ offset_block <- setRefClass(Class="offset_block", contains="covariate_block",
 				callSuper(name, covariate, formula, validation)
 			}
 		},
-		make_block = function(covariate) {
+		make_block = function() {
 			"Construct model matrix, delegate to model.matrix."
+			callSuper()
 			X__ <<- X__[,2:ncol(X__)]
 		}
 	)
@@ -112,16 +115,15 @@ map_block <- setRefClass(Class="map_block", contains="model_block",
 		weight_helper__ = "function"
 	),
 	methods = list(
-		initialize = function(name, covariate, reference_points__,  weight_helper=default_weight_helper,
+		initialize = function(name, covariate, reference_points,  weight_helper=default_weight_helper,
 													validation=NULL
 		) {
 			"Builds on initialization for base class, but only by calling method to construct the block."
-			callSuper(name, validation)
-			reference_points__ <<- reference_points__
+			callSuper(name, covariate, validation)
+			reference_points__ <<- reference_points
 			weight_helper__ <<- weight_helper
-			make_block(covariate)
 		},
-		make_block = function(covariate) {
+		make_block = function() {
 			"Construct model matrix, delegate to helper function, passing covariates and knot points."
 			temp_block <- sapply(reference_points__, function(x) weight_helper__(covariate=covariate, knot=x))
 			colnames(temp_block) <- paste0(effect_name__,"_p_",reference_points__,"_")

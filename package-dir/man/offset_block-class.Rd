@@ -16,6 +16,6 @@ intercept.
 \describe{
 \item{\code{initialize(name, covariate, formula = NULL, validation = NULL)}}{Builds on initialization for base class, but only by calling method to construct the block.}
 
-\item{\code{make_block(covariate)}}{Construct model matrix, delegate to model.matrix.}
+\item{\code{make_block()}}{Construct model matrix, delegate to model.matrix.}
 }}
 

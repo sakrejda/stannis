@@ -21,7 +21,7 @@ multiple blocks.}
 \section{Methods}{
 
 \describe{
-\item{\code{initialize(name, validation = NULL)}}{Initialize the base class with a name and validation function.}
+\item{\code{initialize(name, covariate = list(), validation = NULL)}}{Initialize the base class with a name and validation function.}
 
 \item{\code{make_block()}}{For the base class this is a placeholder which throws an error.
 In all other subclasses this function arranges the covariates into the
