@@ -62,4 +62,12 @@ age_x_season_map <- function(covariate, knot) {
 	stop("Fail in covariate_map.")
 }
 
-matches_helper <- function(covariate, knot) ifelse(covariate == knot, 1, 0) 
+matches_helper_factory <- function(name) {
+	name;
+	matches_helper <- function(covariate, knot) ifelse(covariate[[name]] == knot, 1, 0) 
+	return(matches_helper)
+}
+
+
+
+
