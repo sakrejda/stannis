@@ -139,3 +139,26 @@ map_block <- setRefClass(Class="map_block", contains="model_block",
 	)
 )
 
+discrete_map_block <- setRefClass(Class="discrete_map_block", contains="model_block",
+	fields = list(
+		reference_points__ = "character",
+		weight_helper__ = "function"
+	),
+	methods = list(
+		initialize = function(name, covariate, reference_points,  weight_helper=default_weight_helper,
+													validation=NULL
+		) {
+			"Builds on initialization for base class, but only by calling method to construct the block."
+			callSuper(name, covariate, validation)
+			reference_points__ <<- reference_points
+			weight_helper__ <<- weight_helper
+		},
+		make_block = function() {
+			"Construct model matrix, delegate to helper function, passing covariates and knot points."
+			cov <- drops__(covariate__)
+			temp_block <- sapply(reference_points__, function(x) weight_helper__(covariate=cov, knot=x))
+			colnames(temp_block) <- paste0(effect_name__,"_p_",reference_points__,"_")
+			X__ <<- temp_block
+		}
+	)
+)
