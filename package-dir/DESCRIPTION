@@ -7,9 +7,9 @@ Author: Krzysztof Sakrejda
 Maintainer: Krzysztof Sakrejda <sakrejda@umass.edu>
 Description: Alternative organization.
 License: GPL-2
-Collate: stan-csv-read.R stan-names.R meta-data.R multifile-accessors.R multifile-accessors-methods.R
 Imports:
     Rcpp (>= 0.11.3)
 Depends:
-    integrator, digest
+    integrator,
+    digest
 LinkingTo: Rcpp
