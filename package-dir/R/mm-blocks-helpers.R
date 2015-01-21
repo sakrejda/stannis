@@ -62,15 +62,4 @@ age_x_season_map <- function(covariate, knot) {
 	stop("Fail in covariate_map.")
 }
 
-drop_helper_factory <- function(cov_names,drops) {
-	cov_names; drops;
-	drop_helper <- function(covariate) {
-		for (name in cov_names) {
-			x_new <- x[[names(x) == name]]
-	    x_new[x_new %in% drops[[name]] ] <- "DROP__"
-    	x[names(x) == 'sample_name'] <- x_new
-	}
-	return(drop_helper)
-}
-
-
+matches_helper <- function(covariate, knot) ifelse(covariate == knot, 1, 0) 
