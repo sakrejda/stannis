@@ -15,6 +15,7 @@ model_block <- setRefClass(Class="model_block",
 		effect_name__ = "character",
 		input_check__ = "function",
 		covariate__ = "list",
+		drops__ = "list",
 		X__ = "matrix",
 		X = function(x=NULL) {
 			if (!is.null(x)) stop("Can not assign directly.")
@@ -31,7 +32,7 @@ model_block <- setRefClass(Class="model_block",
 		}
 	),
 	methods=list(
-		initialize = function(name, covariate=list(), validation=NULL) {
+		initialize = function(name, covariate=list(), validation=NULL, drops=NULL) {
 		"Initialize the base class with a name and validation function."
 			effect_name__ <<- name
 			covariate__ <<- covariate
@@ -39,6 +40,11 @@ model_block <- setRefClass(Class="model_block",
 				input_check__ <<- function(x) rep(TRUE,x)
 			} else {
 				input_check__ <<- validation
+			}
+			if (is.null(drops)) {
+				drops__ <<- function(x) return(x)
+			} else {
+				drops__ <<- drops
 			}
 		},
 		make_block = function() {
@@ -73,7 +79,7 @@ covariate_block <- setRefClass(Class="covariate_block", contains="model_block",
 		},
 		make_block = function() {
 			"Construct model matrix, delegate to model.matrix."
-			X__ <<- model.matrix(formula__, data=covariate__)
+			X__ <<- model.matrix(formula__, data=drops__(covariate__))
 		}
 	)
 )
@@ -125,7 +131,8 @@ map_block <- setRefClass(Class="map_block", contains="model_block",
 		},
 		make_block = function() {
 			"Construct model matrix, delegate to helper function, passing covariates and knot points."
-			temp_block <- sapply(reference_points__, function(x) weight_helper__(covariate=covariate__, knot=x))
+			cov <- drops__(covariate__)
+			temp_block <- sapply(reference_points__, function(x) weight_helper__(covariate=cov, knot=x))
 			colnames(temp_block) <- paste0(effect_name__,"_p_",reference_points__,"_")
 			X__ <<- temp_block
 		}
