@@ -40,7 +40,7 @@ model_block <- setRefClass(Class="model_block",
 			} else {
 				input_check__ <<- validation
 			}
-		}
+		},
 		make_block = function() {
 		"For the base class this is a placeholder which throws an error.  
 		 In all other subclasses this function arranges the covariates into the
@@ -125,7 +125,7 @@ map_block <- setRefClass(Class="map_block", contains="model_block",
 		},
 		make_block = function() {
 			"Construct model matrix, delegate to helper function, passing covariates and knot points."
-			temp_block <- sapply(reference_points__, function(x) weight_helper__(covariate=covariate, knot=x))
+			temp_block <- sapply(reference_points__, function(x) weight_helper__(covariate=covariate__, knot=x))
 			colnames(temp_block) <- paste0(effect_name__,"_p_",reference_points__,"_")
 			X__ <<- temp_block
 		}
