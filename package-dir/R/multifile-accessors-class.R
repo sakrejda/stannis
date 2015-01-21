@@ -123,6 +123,12 @@ stan_commander <- setRefClass(Class="stan_commander",
 			o <- lapply(estimates[type_mask], `[`, , j=column_names, drop=FALSE)
 			o <- do.call(what=rbind, args=o)
 			return(o)
+		},
+		get_array = function(x, ...) {
+			"Implementation for the subset operator '[', returning an array."
+			o <- get_parameter(x, ...)
+			o <- named_column_to_array(o)
+			return(o)
 		}
 	)
 )
