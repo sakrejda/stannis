@@ -37,7 +37,7 @@ setMethod(
 	f="[",
 	signature = signature(x='stan_commander', i='character', j="ANY", drop="ANY"),
 	definition = function(x, i, j=NULL, ..., drop=FALSE) {
-		if (!(i %in% names(output))) {
+		if (!(i %in% names(x))) {
 			msg <- paste0("Name '", i, "' is not a parameter in object '", as.character(substitute(x)), "'.\n")
 			stop(msg)
 		}
@@ -50,4 +50,29 @@ setMethod(
 	}
 )
 
+
+#' Accessor to get a vector of samples for a parameter.
+#' 
+#' @param x stan_commander object
+#' @param i name of the parameter
+#' @param j first index, if any.
+#' @param ... additional indexing, if any.
+#' @param drop currently ignored.
+#' @details Does some checking, then delegates to a stan_commander member
+setMethod(
+	f="[",
+	signature = signature(x='stan_commander', i='character', j="missing", drop="ANY"),
+	definition = function(x, i, ..., drop=FALSE) {
+		if (!(i %in% names(x))) {
+			msg <- paste0("Name '", i, "' is not a parameter in object '", as.character(substitute(x)), "'.\n")
+			stop(msg)
+		}
+		if (missing(j) || is.null(j)) {
+			o <- do.call(what=x$get_array, args=list(i, ...))
+		} else {
+			o <- do.call(what=x$get_array, args=list(i, j, ...))
+		}
+		return(o)
+	}
+)
 
