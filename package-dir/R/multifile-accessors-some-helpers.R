@@ -20,10 +20,14 @@ named_columns_to_dim_list <- function(colname) {
 
 
 named_columns_to_arrays <- function(data) {
-	names <- named_columns_to_parameter_names(colnames(data))
-	dim_list <- c(nrow(data),as.list(named_columns_to_dim_list(colnames(data))))
-	names(dim_list) <- c('iteration',letters[9:(9+length(dim_list)-2)])
-	o <- array(data=data, dim=dim_list, dimnames=names(dim_list))
+	if (ncol(data) > 1) {
+		names <- named_columns_to_parameter_names(colnames(data))
+		dim_list <- c(nrow(data),as.list(named_columns_to_dim_list(colnames(data))))
+		names(dim_list) <- c('iteration',letters[9:(9+length(dim_list)-2)])
+		o <- array(data=data, dim=dim_list)
+	} else {
+		o <- array(data=data, dim=length(data))
+	}
 	return(o)
 }
 
