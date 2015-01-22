@@ -80,7 +80,9 @@ covariate_block <- setRefClass(Class="covariate_block", contains="model_block",
 		},
 		make_block = function() {
 			"Construct model matrix, delegate to model.matrix."
-			X__ <<- model.matrix(formula__, data=drops__(covariate__))
+			X__ <<- model.matrix(formula__,
+				model.frame(formula__, data=drops__(covariate__), na.action=function(x) x))
+
 		}
 	)
 )
