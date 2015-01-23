@@ -138,7 +138,7 @@ map_block <- setRefClass(Class="map_block", contains="model_block",
 			"Construct model matrix, delegate to helper function, passing covariates and knot points."
 			cov <- drops__(covariate__)
 			temp_block <- apply(reference_points__, 1, function(x) weight_helper__(covariate=cov, knot=x))
-			colnames(temp_block) <- paste0(effect_name__,"_p_",reference_points__,"_")
+			colnames(temp_block) <- paste0(effect_name__,"_p_",1:nrow(reference_points__),"_")
 			X__ <<- temp_block
 		}
 	)
