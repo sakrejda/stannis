@@ -21,6 +21,17 @@ circle_weight_helper_factory <- function(scale) {
 	return(circle_weight_helper)
 }
 
+## Requires MV map_block?
+donut_weight_helper_factory <- function(scale) {
+	scale;
+	donut_weight_helper <- function(covariate, knot) {
+		w1 <- exp(-((covariate[[1]]-knot[1])/scale[1])^2)
+		w2 <- exp(-((covariate[[2]]-knot[2])/scale[2])^2)
+		w3 <- exp(-sq_circ_distance(covariate[[3]],knot[3])/scale[3]^2)
+		return(w1*w2*w3)
+	}
+}
+
 age_map <- function(covariate, knot) {
 	covariate <- covariates[[1]]
 	o <- vector(mode='numeric', length=length(covariate))

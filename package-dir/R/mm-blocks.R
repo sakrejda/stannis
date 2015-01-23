@@ -121,7 +121,7 @@ offset_block <- setRefClass(Class="offset_block", contains="covariate_block",
 #' 
 map_block <- setRefClass(Class="map_block", contains="model_block",
 	fields = list(
-		reference_points__ = "numeric",
+		reference_points__ = "matrix",
 		weight_helper__ = "function"
 	),
 	methods = list(
@@ -137,7 +137,7 @@ map_block <- setRefClass(Class="map_block", contains="model_block",
 		make_block = function() {
 			"Construct model matrix, delegate to helper function, passing covariates and knot points."
 			cov <- drops__(covariate__)
-			temp_block <- sapply(reference_points__, function(x) weight_helper__(covariate=cov, knot=x))
+			temp_block <- apply(reference_points__, 1, function(x) weight_helper__(covariate=cov, knot=x))
 			colnames(temp_block) <- paste0(effect_name__,"_p_",reference_points__,"_")
 			X__ <<- temp_block
 		}
