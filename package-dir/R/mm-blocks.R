@@ -19,7 +19,6 @@ model_block <- setRefClass(Class="model_block",
 		X__ = "matrix",
 		X = function(x=NULL) {
 			if (!is.null(x)) stop("Can not assign directly.")
-			make_block()
 			return(X__)
 		},
 		K = function(x=NULL) {
