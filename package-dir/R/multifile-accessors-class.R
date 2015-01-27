@@ -1,6 +1,12 @@
 
 #' A reference class allows access to output from multiple CmdStan .csv
-#' files efficiently.
+#' files efficiently. We assume little, different files are : 1) allowed
+#' to provide different parameters; 2) allowed to hold different number
+#' of iterations; and 3) be generated from different techniques.  The
+#' behavior is that when a named parameter is asked for, it will be put 
+#' together in a single column from all files in which it is found.  The
+#' source of the parameters can also be requested and it will be
+#' provided for the most recent. 
 #'
 #' @field paths paths to .csv output from optimize and/or sample.
 #' @field type vector indicating result type ("optimize" or "sample").
@@ -17,6 +23,7 @@ stan_commander <- setRefClass(Class="stan_commander",
 		hashes = "character",
 		type = "character",
 		ids = "character",
+		return_sources__ = "data.frame",
 		model_parameters = "list",
 		internal_parameters = "list",
 		meta = "list",
@@ -26,7 +33,7 @@ stan_commander <- setRefClass(Class="stan_commander",
 		current_type__ = "character",
 		source_type = function(type=NULL) {
 			if (is.null(type)) return(current_type__)
-			if (type %in% c('optimize','sample')) 
+			if (all(type %in% c('optimize','sample'))) 
 				current_type__ <<- type
 			else
 				stop("You're not my type.")
@@ -115,12 +122,13 @@ stan_commander <- setRefClass(Class="stan_commander",
 		get_parameter = function(x, ...) {
 			"Implementation for the subset operator '['... used directly or via an S4 method."
 			check_hashes()
-			#dots <- list(...)
-			#indexes <- unlist(dots)
 			column_names <- make_names(x, ...)
-			#check_dimensions(x, dots)
-			type_mask <- type %in% current_type__
+			type_mask <- type %in%  current_type__
 			o <- lapply(estimates[type_mask], `[`, , j=column_names, drop=FALSE)
+			return_sources__ <<- data.frame(
+				type = rep(type,sapply(o,length)),
+				id = rep(ids, sapply(o,length))
+			)
 			o <- do.call(what=rbind, args=o)
 			return(o)
 		},
