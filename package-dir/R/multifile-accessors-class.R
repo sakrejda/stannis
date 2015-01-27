@@ -125,10 +125,6 @@ stan_commander <- setRefClass(Class="stan_commander",
 			column_names <- make_names(x, ...)
 			type_mask <- type %in%  current_type__
 			o <- lapply(estimates[type_mask], `[`, , j=column_names, drop=FALSE)
-			return_sources__ <<- data.frame(
-				type = rep(type,sapply(o,length)),
-				id = rep(ids, sapply(o,length))
-			)
 			o <- do.call(what=rbind, args=o)
 			return(o)
 		},
