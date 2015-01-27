@@ -94,7 +94,9 @@ stan_commander <- setRefClass(Class="stan_commander",
 		},
 		do_reload = function() {
 			"Parse file estimates."
-			estimates <<- lapply(paths, read_stan_file)	
+			estimates <<- lapply(X+paths, FUN=function(file) {
+				o <- read_stan_file(file)
+			)	
 		},
 		make_names = function(name, ...) {
 			"Paste together parameter name with indexes to generate csv column name."
