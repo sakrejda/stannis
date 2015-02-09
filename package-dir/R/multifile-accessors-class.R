@@ -94,9 +94,7 @@ stan_commander <- setRefClass(Class="stan_commander",
 		},
 		do_reload = function() {
 			"Parse file estimates."
-			estimates <<- lapply(X+paths, FUN=function(file) {
-				o <- read_stan_file(file)
-			)	
+			estimates <<- lapply(paths, read_stan_file) 
 		},
 		make_names = function(name, ...) {
 			"Paste together parameter name with indexes to generate csv column name."
@@ -135,6 +133,26 @@ stan_commander <- setRefClass(Class="stan_commander",
 			o <- get_parameter(x, ...)
 			o <- named_columns_to_arrays(o)
 			return(o)
+		},
+		store_traces = function(file, devices=pdf, ...) {
+			"Method for dumping all parameter traces into a file."
+			check_hashes()
+			type_mask <- type %in%  current_type__
+			parameter_names <- sapply(estimates[type_mask],colnames) %>% c %>% unique %>% sort
+			devices(file=file, ...)
+			for ( par in parameter_names ) {
+				o <- list()
+				for ( i in seq_along(estimates[type_mask])) {
+					f <- basename(paths[type_mask][i])
+					o[[f]] <- data.frame(parameter=par, value=estimates[type_mask][[i]][,par], source=f)
+					o[[f]][['iteration']] <- 1:nrow(o[[f]])
+				}
+				o <- do.call(what=rbind, args=o)
+				pl <- ggplot(data=o, aes(x=iteration, y=value, colour=source)
+					) + geom_point() + ggtitle(par)
+				print(pl)
+			}
+			dev.off()
 		}
 	)
 )
