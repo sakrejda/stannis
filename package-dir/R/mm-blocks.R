@@ -14,7 +14,6 @@ model_block <- setRefClass(Class="model_block",
 	fields = list(
 		effect_name__ = "character",
 		input_check__ = "function",
-		covariate__ = "list",
 		drops__ = "function",
 		X__ = "matrix",
 		X = function(x=NULL) {
@@ -34,7 +33,6 @@ model_block <- setRefClass(Class="model_block",
 		initialize = function(name, covariate=list(), validation=NULL, drops=NULL) {
 		"Initialize the base class with a name and validation function."
 			effect_name__ <<- name
-			covariate__ <<- covariate
 			if (is.null(validation)) {
 				input_check__ <<- function(x) rep(TRUE,x)
 			} else {
@@ -64,11 +62,13 @@ model_block <- setRefClass(Class="model_block",
 #' multiple blocks.
 covariate_block <- setRefClass(Class="covariate_block", contains="model_block",
 	fields = list(
-		formula__ = "formula"
+		formula__ = "formula",
+		covariate__ = "list"
 	),
 	methods = list(
 		initialize = function(name, covariate, formula=NULL, validation=NULL) {
 			"Builds on initialization for base class, but only by calling method to construct the block."
+			covariate__ <<- covariate
 			callSuper(name, covariate, validation)
 			if (!is.null(formula)) {
 				formula__<<- formula
@@ -92,13 +92,16 @@ covariate_block <- setRefClass(Class="covariate_block", contains="model_block",
 #' 
 offset_block <- setRefClass(Class="offset_block", contains="covariate_block",
 	fields = list(
+		covariate__ = "list"
 	),
 	methods = list(
 		initialize = function(name, covariate, formula=NULL, validation=NULL) {
 			"Builds on initialization for base class, but only by calling method to construct the block."
 			if (is.null(formula)) {
+			  covariate__ <<- covariate
 				callSuper(name, covariate, formula=default_formula(covariate, intercept=TRUE), validation)
 			} else {
+			  covariate__ <<- covariate
 				callSuper(name, covariate, formula, validation)
 			}
 			make_block(); X;
@@ -120,6 +123,7 @@ offset_block <- setRefClass(Class="offset_block", contains="covariate_block",
 #' 
 map_block <- setRefClass(Class="map_block", contains="model_block",
 	fields = list(
+		covariate__ = "matrix",
 		reference_points__ = "matrix",
 		weight_helper__ = "function"
 	),
@@ -128,6 +132,7 @@ map_block <- setRefClass(Class="map_block", contains="model_block",
 													validation=NULL
 		) {
 			"Builds on initialization for base class, but only by calling method to construct the block."
+			covariate__ <<- covariate
 			callSuper(name, covariate, validation)
 			reference_points__ <<- reference_points
 			weight_helper__ <<- weight_helper
@@ -145,6 +150,7 @@ map_block <- setRefClass(Class="map_block", contains="model_block",
 
 discrete_map_block <- setRefClass(Class="discrete_map_block", contains="model_block",
 	fields = list(
+		covariate__ = "list",
 		reference_points__ = "character",
 		weight_helper__ = "function"
 	),
@@ -153,6 +159,7 @@ discrete_map_block <- setRefClass(Class="discrete_map_block", contains="model_bl
 													validation=NULL
 		) {
 			"Builds on initialization for base class, but only by calling method to construct the block."
+			covariate__ <<- covariate
 			callSuper(name, covariate, validation)
 			reference_points__ <<- reference_points
 			weight_helper__ <<- weight_helper
