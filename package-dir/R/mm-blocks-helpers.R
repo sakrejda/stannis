@@ -53,6 +53,7 @@ age_map <- function(covariate, knot) {
 age_x_season_helper_factory <- function(period, max_age) {
 	period; max_age;
 	age_x_season_helper <- function(covariate, knot) {
+		if (!is.numeric(knot)) knot <- as.numeric(knot)
 		a <- covariate[['age']]
 		s <- covariate[['season']]
 		o <- vector(mode='numeric', length=length(a))
