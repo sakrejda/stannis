@@ -34,11 +34,12 @@ donut_weight_helper_factory <- function(scale) {
 
 #' Generalized basis function helper factory.
 #' @param s knot scale for each dimension, shared across all knots.
-#' @param f function for turning a vector of scaled distances into a
+#' @param f function for turning a vector of locations into distances.
+#' @param g function for turning a vector of scaled distances into a
 #'        weight, same dimension as 's'.
 #' @return basis function weight helper with specified scales.
-generalized_weight_helper_factory <- function(s,f) {
-	s;f;  ## Evaluate, you lazy bum.
+generalized_weight_helper_factory <- function(s,f,g) {
+	s;f;g;  ## Evaluate, you lazy bum.
   #' Generalized basis function weight helper.  Notations is:
   #'   N: number of observations.
   #'   M: number of dimensions.
@@ -49,9 +50,10 @@ generalized_weight_helper_factory <- function(s,f) {
 
 	helper <- function(X, K) {
     D <- apply(K,1, function(K_r,Z) {
-      D <- t(apply(Z,1, function(X_r, K_r) X_r-K_r, K_r=K_r)) ## Output distances, still N x M
+#      D <- t(apply(Z,1, function(X_r, K_r) X_r-K_r, K_r=K_r)) ## Output distances, still N x M
+      D <- t(apply(Z,1, f, k=K_r)) ## Output distances, still N x M
       D <- t(apply(D,1, function(D_r, s) D_r/s, s=s)) ## Output scaled distances, still N x M
-      D <- apply(D,1,f) ## Finally reduced to N x 1 vector (per K)
+      D <- apply(D,1,g) ## Finally reduced to N x 1 vector (per K)
       return(D)
      }, Z=X)
     return(D)
