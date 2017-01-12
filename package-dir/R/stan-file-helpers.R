@@ -1,20 +1,3 @@
-#' Trims whitespace from a string front and back.
-#' @param s the string
-#' @return s without leading and trailing whitespace.
-trim_whitespace <- function(s) {
-	s <- gsub(pattern='^\\s*', replacement='', x=s)
-	s <- gsub(pattern='\\s*$', replacement='', x=s)
-	return(s)
-}
-
-#' Trims comment char from the front of a string.
-#' @param s the string
-#' @param c comment character
-#' @return s without leading and trailing whitespace.
-trim_comment_char <- function(s, c='#') {
-	s <- gsub(pattern=paste0('^\\s*', c, '\\s*'), replacement='', x=s)
-	return(s)
-}
 
 #' Get the lines of a Stan .csv file with the metadata
 #' @param lines lines from the Stan .csv file, need only enough to get past the recorded meta-data.
@@ -31,7 +14,7 @@ get_comment_lines <- function(lines) {
 get_control_lines <- function(lines) {
   lines <- get_comment_lines(lines)
 	lines <- lines[grepl(pattern='=', x=lines, fixed=TRUE)] %>% 
-    lapply(trim_whitespace) %>% process_key_value(split='=')
+    lapply(trim_whitespace) %>% unlist %>% process_key_value(split='=')
 	return(lines)
 }
 
@@ -60,12 +43,25 @@ get_column_names <- function(lines) {
 	return(column_names)
 }
 
+#' Properly read a stan file, avoiding factors and comments, including
+#' reading column names from a header.
+#'
+#' @param file An output file produced by CmdStan.
+#' @return A data.frame.
+read_stan_data <- function(file) {
+  o <- read.table(file=file, header=TRUE, sep=',', stringsAsFactors=FALSE, comment.char='#')
+  return(o)
+}
 
-
-
-
-
-
-
-
-
+#' Properly read a stan file, avoiding factors and comments, including
+#' reading column names from a header.
+#'
+#' @param file An output file produced by CmdStan.
+#' @return A data.frame.
+read_stan_metadata <- function(file) {
+  lines <- readLines(file=file)
+  imm <- get_imm_diagonal(lines)
+  control <- get_control_lines(lines)
+  o <- list()
+  return(o)
+}
