@@ -6,16 +6,17 @@
 #' @return array of correct dimension for the given parameter
 #'         indexed as in the Stan model.
 generate_parameter_array <- function(data) {
-	if (ncol(data) > 1) {
-    column_names <- colnames(data)
-    num_rows <- nrow(data)
-		names <- extract_parameter_names(column_names)
-		dim_list <- c(num_rows,as.list(generate_dims(column_names)))
-		names(dim_list) <- c('iteration',letters[9:(9+length(dim_list)-2)])
-		o <- array(data=data, dim=dim_list)
-	} else {
-		o <- array(data=data, dim=num_rows)
-	}
+  column_names <- colnames(data)
+  num_rows <- nrow(data)
+  names <- extract_parameter_names(column_names)
+  dim_dims <- generate_dims(column_names)
+  if (length(dim_dims) == 1 && dim_dims == 0) {
+    dim_list <- c(iteration=nrow(data))
+  } else { 
+    dim_list <- c(num_rows,as.list(dim_dims))
+    names(dim_list) <- c('iteration',letters[9:(9+length(dim_list)-2)])
+  }
+	o <- array(data=unlist(data), dim=dim_list)
 	return(o)
 }
 
@@ -29,19 +30,21 @@ split_data_by_parameter <- function(data) {
   parameters <- colnames(data) %>% extract_parameter_names
   o <- list()
   for (name in parameters) {
-    wh <- grepl(pattern=paste0('^', name, '\\.'), 
-      x=colnames(data), fixed=TRUE) %>% which
-    o[[name]] <- x[,wh]
+    wh <- grepl(pattern=paste0('^', name, '\\.', 
+                              '|^', name, '$'), 
+      x=colnames(data)) %>% which
+    o[[name]] <- data[,wh, drop=FALSE]
   }
   return(o)
 }
 
 #' Generate one properly sized array for each Stan parameter
 #' in a given Stan-format data frame.
-generate_parrameter_arrays <- function(data) {
+generate_parameter_arrays <- function(data) {
   data <- split_data_by_parameter(data)
-  for (d in data)
-    d <- generate_parameter_array(data)
+  d <- list()
+  for (name in names(data))
+    d[[name]] <- generate_parameter_array(data[[name]])
   return(d)
 }
 
