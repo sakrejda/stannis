@@ -87,7 +87,7 @@ covariate_block <- setRefClass(Class="covariate_block", contains="model_block",
 )
 
 #' A reference class for constructing the (simple!) model matrix for a
-#' factor, this preduces a parameterization assuming some other
+#' factor, this produces a parameterization assuming some other
 #' intercept.
 #' 
 offset_block <- setRefClass(Class="offset_block", contains="covariate_block",
