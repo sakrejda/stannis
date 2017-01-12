@@ -11,15 +11,6 @@ generate_stan_column_name <- function(parameter, ...) {
 	return(index_list)
 }
 
-#' Extract unique parameter names from a set of Stan-format
-#' column names.
-#' @param Stan-format column names.
-#' @return unique parameter names.
-extract_parameter_names <- function(x) {
-	o <- strsplit(x=colname, split='\\.') %>% lapply(`[`,1) %>% unique %>% `[[`(1)
-	return(o)
-}
-
 #' Split column names by parameter.
 #' @param x Stan-format column names.
 #' @return list of Stan-format column names, with one 
