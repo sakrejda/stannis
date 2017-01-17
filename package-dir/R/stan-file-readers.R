@@ -30,19 +30,19 @@ read_stan_metadata <- function(file) {
     gamma = get_gamma(control), 
     delta = get_delta(control), 
     kappa = get_kappa(control), 
-    get_t0 = get_t0(control),
-    get_init_buffer = get_init_buffer(control),
-    get_term_buffer = get_term_buffer(control),
-    get_window = get_window(control),
-    get_max_depth = get_max_depth(control),
-    get_metric = get_metric(control),
-    get_initial_stepsize = get_initial_stepsize(control),
-    get_chain_id = get_chain_id(control),
-    get_data_file = get_data_file(control),
-    get_init_file = get_init_file(control),
-    get_output_file = get_output_file(control),
-    get_diagnostic_file = get_diagnostic_file(control),
-    get_refresh = get_refresh(control),
+    t0 = get_t0(control),
+    init_buffer = get_init_buffer(control),
+    term_buffer = get_term_buffer(control),
+    window = get_window(control),
+    max_depth = get_max_depth(control),
+    metric = get_metric(control),
+    initial_stepsize = get_initial_stepsize(control),
+    chain_id = get_chain_id(control),
+    data_file = get_data_file(control),
+    init_file = get_init_file(control),
+    output_file = get_output_file(control),
+    diagnostic_file = get_diagnostic_file(control),
+    refresh = get_refresh(control),
     inverse_mass_matrix = get_imm_diagonal(lines)
   )
   return(o)
@@ -51,7 +51,7 @@ read_stan_metadata <- function(file) {
 #' Read Stan file
 read_stan <- function(file) {
   o <- list(
-    metadata <- read_stan_metadata(file)
+    metadata <- read_stan_metadata(file),
     samples <- read_stan_data(file)
   )
   return(o)
@@ -59,11 +59,20 @@ read_stan <- function(file) {
 
 read_stan_set <- function(root='.', pattern) {
   files <- dir(path=root, pattern=pattern, full.names=TRUE)
-  o <- list()
-  for (f in files) {
-    o[[f]] <- read_stan(f)
+  metadata <- lapply(files, read_stan_metadata)
+  ids <- sapply(metadata, `[[`, 'chain_id')
+  data <- lapply(files, function(f) {
+    d <- read_stan_data(f)
+    d[['iteration']] <- 1:nrow(d)
+    return(d)
+  })
+  for ( i in seq_along(ids)) {
+    data[[i]][['chain']] <- ids[i]
+    data[[i]][['stationary']] <- 
+      data[[i]][['iteration']] > metadata[[i]][['num_warmup']]
   }
-  names(o) <- sapply(o, function(x) x[['metadata']][['id']])
-  return(o)
+  return(list(metadata=metadata, 
+              data=do.call(what=rbind, args=data)))
 }
+
     
