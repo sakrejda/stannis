@@ -1,4 +1,4 @@
-Package: parsestan
+Package: stannis
 Type: Package
 Title: Handles output from Stan (mc-stan.org)
 Version: 1.0
@@ -13,3 +13,7 @@ Depends:
     magrittr,
     dplyr
 LinkingTo: Rcpp
+
+
+
+

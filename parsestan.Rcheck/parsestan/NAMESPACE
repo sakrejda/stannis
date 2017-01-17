@@ -1,3 +1,0 @@
-#useDynLib(parsestan)
-exportPattern("^[[:alpha:]]+")
-importFrom(Rcpp, evalCpp)
