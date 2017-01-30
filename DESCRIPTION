@@ -12,6 +12,8 @@ Imports:
 Depends:
     magrittr,
     dplyr
+Suggests:
+    rappdirs
 LinkingTo: Rcpp
 
 
