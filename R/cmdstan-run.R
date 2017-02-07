@@ -8,7 +8,7 @@ cmdstan_data_dir <- function() {
 }
 
 
-cmdstan_build <- function(model=NULL, cmdstan='~/packages/cmdstan', resources=cmdstan_data_dir) {
+cmdstan_build <- function(model=NULL, cmdstan='~/packages/cmdstan', resources=cmdstan_data_dir()) {
   if(!dir.exists(resources))
     dir.create(resources)
   model <- normalizePath(model) 
@@ -27,31 +27,15 @@ cmdstan_default_args <- function() {
   return(s)
 }
 
-cmdstan_run <- function(binary=NULL, args=cmdstan_default_args(), file=NULL) {
+cmdstan_run <- function(binary=NULL, args=cmdstan_default_args(), run=TRUE) {
   if (is.null(binary)) {
     stop("Model binary not specified. Not running.")
   } else {
     cmd <- paste(binary, args)   
   }
-  if (is.null(file))
+  if (isTRUE(run))
     system(cmd)
-  else
-    writeLines(text=cmd, con=file)
-  return()
+  return(cmd)
 }
   
-cmdstan_batch <- function(batch='bsub', binary=NULL, args=cmdstan_default_args(), file=NULL) {
-  if (is.null(binary)) {
-    stop("Model binary not specified. Not running.")
-  } else {
-    cmd <- paste(batch, binary, args)   
-  }
-  if (is.null(file))
-    system(cmd)
-  else
-    writeLines(text=cmd, con=file)
-  return()
-}
-
-
 
