@@ -22,6 +22,15 @@ generate_cmdstan_run <- function(ostream, binary, args) {
   return(ostream)
 }
 
+write_cmdstan_pbs <- function(binary, cmdstan_args, pbs_args, prefix, outfile) {
+  outfile %>% generate_options(pbs_args, prefix) %>% 
+    generate_cmdstan_run(binary, cmdstan_args)
+  return(outfile)
+}
+
+
+
+
 
 
 
