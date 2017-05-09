@@ -66,14 +66,6 @@ get_output_file <- function(cl) {cl[['file']] <- NULL; return(cl[['file']])}
 get_diagnostic_file <- function(cl) cl[['diagnostic_file']]
 get_refresh <- function(cl) cl[['refresh']] %>% as.numeric
 
-
-
-
-
-
-
-
-
 #' Get the line of a Stan .csv file with the inverse mass matrix
 #' diagonal in it.
 #' @param lines lines from the Stan .csv file, need only enough to get past the recorded meta-data.
@@ -103,4 +95,16 @@ get_column_names <- function(lines) {
 	column_names <- trim_whitespace(column_names)
 	return(column_names)
 }
+
+
+get_total_time <- function(lines) {
+  lines <- get_comment_lines(lines) %>%
+    `[`(grepl(pattern = '(Total)', x = .))
+  l <- regexpr(pattern="[0-9][0-9\\.]*", text=lines) %>%
+    attr('match.length')
+  total_time <- substr(lines, 1, l)
+  return(total_time)
+}
+
+
 
