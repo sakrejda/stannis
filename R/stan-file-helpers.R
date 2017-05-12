@@ -102,8 +102,11 @@ get_total_time <- function(lines) {
     `[`(grepl(pattern = '(Total)', x = .))
   l <- regexpr(pattern="[0-9][0-9\\.]*", text=lines) %>%
     attr('match.length')
-  total_time <- substr(lines, 1, l)
-  return(total_time)
+  total_time <- substr(lines, 1, l) %>% as.numeric
+  if (length(total_time) > 0) 
+    return(total_time)
+  else 
+    return(NA)
 }
 
 

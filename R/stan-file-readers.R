@@ -43,7 +43,7 @@ read_stan_metadata <- function(file) {
     output_file = get_output_file(control),
     diagnostic_file = get_diagnostic_file(control),
     refresh = get_refresh(control),
-    inverse_mass_matrix = get_imm_diagonal(lines)
+    inverse_mass_matrix = get_imm_diagonal(lines),
     total_time = get_total_time(lines)
   )
   return(o)
