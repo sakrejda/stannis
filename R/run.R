@@ -53,7 +53,7 @@ push_data <- function(args) {
     return("")
   else 
     args <- args[['data']]
-  if ('dir' %in% args) {
+  if ('dir' %in% names(args)) {
     args[['file']] = file.path(args[['dir']], args[['file']])
   }
   stub <- paste("data", push_args(args, 'file'))
