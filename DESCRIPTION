@@ -11,7 +11,7 @@ Imports:
     Rcpp (>= 0.11.3)
 Depends:
     magrittr,
-    dplyr
+    dplyr, yaml
 Suggests:
     rappdirs
 LinkingTo: Rcpp
