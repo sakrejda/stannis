@@ -1,0 +1,35 @@
+
+### tooling config:
+
+cmdstan:
+  source: "~/packages/cmdstan"
+
+defaults:
+  stub : "name:[[NAME]]-id:[[ID]]-chain:[[CHAIN]]-model:[[MODEL]]-data:[[DATA]]"
+  binary_dir : "./model-binaries"
+  sample : 
+    num_chains : 2
+    num_samples : 500
+    num_warmup : 400
+    save_warmup : 1
+    thin : 1
+  algorithm : 
+    engine : "nuts"
+    max_depth : 15
+  data :
+    file : "cu-data.rdump"
+    dir : "data"
+  output :
+    refresh : 1
+    dir : "fits"
+
+runs:
+  fp-logistic-level-w-AR-rev-01:
+    name : "check"
+  fp-logistic-level-w-AR-rev-02:
+    name : "check"
+  fp-logistic-rates-level-w-AR-rev-01:
+    name : "check"
+  fp-logistic-rates-w-OU-rev-01:
+    name : "check"
+
