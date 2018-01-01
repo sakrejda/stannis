@@ -79,6 +79,17 @@ push_output <- function(args) {
   return(stub)
 }
 
+
+push_sample <- function(args) {
+  if (!('sample' %in% names(args)))
+    return("method=sample")
+  else
+    args <- args[['sample']]
+  stub <- paste("method=sample", push_args(args,
+        c('num_samples', 'num_warmup', 'save_warmup', 'thin')))
+  return(stub)
+}
+
 push_adapt <- function(args) {
   if (!('adapt' %in% names(args)))
     return("")
@@ -98,8 +109,7 @@ sample_cmdline <- function(...) {
     binary <- args[['binary']]
   }
   stub <- paste(binary, 
-    "method=sample", push_args(args, 
-      c('num_samples', 'num_warmup', 'save_warmup', 'thin')),
+      push_sample(args),
       push_adapt(args), 
       "algorithm=hmc"
   )
