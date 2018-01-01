@@ -250,9 +250,11 @@ load_yaml_args <- function(file) {
   return(cmds)
 }
 
-run_yaml <- function(file) {
+run_yaml <- function(file, hash=NULL) {  
   args <- load_yaml_args(file) 
   for (run in args) {
+    if (!is.null(hash)) 
+      run[['output']] = file.path(run[['output']], hash)
     saveRDS(object=args, file=run[['output']][['control']])
     o <- do.call(what=run_model_cmd, args=run)
   }
