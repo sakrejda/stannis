@@ -213,13 +213,16 @@ merge_lists <- function(...) {
   return(args_out)
 }
 
-load_yaml_args <- function(file) {
+load_yaml_args <- function(file, hash=NULL) {
   control <- yaml::yaml.load_file(file)
   defaults <- control[['defaults']]
   runs <- control[['runs']]
   cmds <- list()
   for (run in names(runs)) {
     args <- merge_lists(defaults, runs[[run]])
+    if (!is.null(hash) && 'output' %in% names(args) && 'dir' %in% names(args[['output']])) { 
+      args[['output']][['dir']] = file.path(args[['output']][['dir']], hash)
+    }
     args[['binary']] <- file.path(args[['binary_dir']], run)
     args[['id']] <- sample(10^6, 1)
     if (!('sample' %in% names(args)) ||
@@ -251,10 +254,8 @@ load_yaml_args <- function(file) {
 }
 
 run_yaml <- function(file, hash=NULL) {  
-  args <- load_yaml_args(file) 
+  args <- load_yaml_args(file, hash) 
   for (run in args) {
-    if (!is.null(hash)) 
-      run[['output']] = file.path(run[['output']], hash)
     saveRDS(object=args, file=run[['output']][['control']])
     o <- do.call(what=run_model_cmd, args=run)
   }
