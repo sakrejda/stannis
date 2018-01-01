@@ -246,7 +246,9 @@ load_yaml_args <- function(file, hash=NULL) {
         output_names <- lapply(output_names, 
           function(x) file.path(args[['output']][['dir']], x))
       }
-      args[['output']] <- c(args[['output']], output_names)
+      for (name in names(output_names)) {
+        args[['output']][[name]] <- output_names[[name]]
+      }
       cmds[[paste(run, chain, sep='-')]] <- args 
     }
   }
