@@ -1,142 +1,28 @@
 
-push_arg <- function(name, value) paste0(name, "=", value)
-
-push_args <- function(args, names) {
-  args_out <- ""
-  for (name in names) {
-    if (name %in% names(args)) {
-      args_out <- paste(args_out, push_arg(name, args[[name]]))
-    }
-  }
-  return(args_out)
-}
-
-push_engine <- function(args) {
-  if (!('engine' %in% names(args)))
-    return("")
-  else 
-    args <- args[['engine']]
-  stub <- paste0("engine=", args[['engine']])
-  if (args[['engine']] == 'static') {
-    stub <- paste(stub, push_args(args, 'int_time'))
-  } else if (args[['engine']] == 'nuts') {
-    stub <- paste(stub, push_args(args, 'max_depth'))
-  } else {
-    msg <- paste("Engine '", args[['engine']], "' is not",
-      " a recognized engine.")
-  }
-  return(stub)
-}
-  
-push_metric <- function(args) {
-  if (!('metric' %in% names(args)))
-    return("")
-  else 
-    args <- args[['metric']]
-  stub <- paste0("metric=", args[['metric']])
-  if(args[['metric']] == 'unit_e') {
-    stub <- paste(stub, push_args(args, 'unit_e'))
-  } else if(args[['metric']] == 'diag_e') {
-    stub <- paste(stub, push_args(args, 'diag_e'))
-  } else if (args[['metric']] == 'dense_e') {
-    stub <- paste(stub, push_args(args, 'dense_e'))
-  } else {
-    msg <- paste0("Metric '", args[['metric']], "' is not",
-      " a recognized metric.")
-    stop(msg)
-  }
-  return(stub)
-}
-
-push_data <- function(args) {
-  if (!('data' %in% names(args)))
-    return("")
-  else 
-    args <- args[['data']]
-  if ('dir' %in% names(args)) {
-    args[['file']] = file.path(args[['dir']], args[['file']])
-  }
-  stub <- paste("data", push_args(args, 'file'))
-  return(stub)
-}
-
-push_random <- function(args) {
-  if (!('random' %in% names(args)))
-    return("")
-  else 
-    args <- args[['random']]
-  stub <- paste("random", push_args(args, 'seed'))
-  return(stub)
-}
-
-push_output <- function(args) {
-  if (!('output' %in% names(args))) 
-    return("")
-  else 
-    args <- args[['output']]
-  stub <- paste("output", push_args(args,
-    c('file', 'diagnostic_file', 'refresh')))
-  return(stub)
-}
-
-
-push_sample <- function(args) {
-  if (!('sample' %in% names(args)))
-    return("method=sample")
-  else
-    args <- args[['sample']]
-  stub <- paste("method=sample", push_args(args,
-        c('num_samples', 'num_warmup', 'save_warmup', 'thin')))
-  return(stub)
-}
-
-push_adapt <- function(args) {
-  if (!('adapt' %in% names(args)))
-    return("")
-  else
-    args <- args[['adapt']]
-  stub <- paste("adapt", push_args(args,
-        c('engaged', 'gamma', 'delta', 'kappa', 't0', 
-          'init_buffer', 'term_buffer', 'window')))
-  return(stub)
-}
-
-sample_cmdline <- function(...) {
+construct_cmdline <- function(...) {
   args <- list(...)
+
+  push_optimize <- function(...) stop("Optimization interface not implemented.")
+  push_variational <- function(...) stop("VI interface not implemented.")
+  push_diagnose <- function(...) stop("Diagnose interface not implemented.")
+  
   if (!('binary') %in% names(args)) {
     stop("Arguments must include path to binary in 'binary'.")
   } else {
     binary <- args[['binary']]
   }
-  stub <- paste(binary, 
-      push_sample(args),
-      push_adapt(args), 
-      "algorithm=hmc"
-  )
-  stub <- paste(stub, push_engine(args), push_metric(args),
-    push_args(args, c('metric_file', 'stepsize', 'stepsize_jitter')))
-  return(stub) 
-} 
 
-
-construct_cmdline <- function(...) {
-  args <- list(...)
-
-  optimize_cmdline <- function(...) stop("Optimization interface not implemented.")
-  variational_cmdline <- function(...) stop("VI interface not implemented.")
-  diagnose_cmdline <- function(...) stop("Diagnose interface not implemented.")
-  
   if (!('method' %in% names(args)))
     args[['method']] <- 'sample'
 
   if (args[['method']] == 'sample') {
-    cmd <- sample_cmdline(...)
+    cmd <- paste(binary, push_sample(...))
   } else if (args[['method']] == 'optimize') {
-    cmd <- optimize_cmdline(...)
+    cmd <- paste(binary, push_optimize(...))
   } else if (args[['method']] == 'variational') {
-    cmd <- variational_cmdline(...)
+    cmd <- paste(binary, push_variational(...))
   } else if (args[['method']] == 'diagnose') {
-    cmd <- diagnose_cmdline(...)
+    cmd <- paste(binary, push_diagnose(...))
   } else {
     msg <- paste0("Method '", args[['method']], "'",
       " is not an option in CmdStan.")
