@@ -16,7 +16,7 @@ construct_cmdline <- function(...) {
     args[['method']] <- 'sample'
 
   if (args[['method']] == 'sample') {
-    cmd <- paste(binary, push_sample(...))
+    cmd <- paste(binary, push_sample(args))
   } else if (args[['method']] == 'optimize') {
     cmd <- paste(binary, push_optimize(...))
   } else if (args[['method']] == 'variational') {
