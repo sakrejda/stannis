@@ -114,8 +114,9 @@ load_yaml_args <- function(file, hash=NULL) {
   defaults <- control[['defaults']]
   runs <- control[['runs']]
   cmds <- list()
-  for (run in names(runs)) {
-    args <- merge_lists(defaults, runs[[run]])
+  for (i in 1:length(runs)) {
+    run <- runs[[i]][['name']]
+    args <- merge_lists(defaults, runs[[i]])
     if (!is.null(hash) && 'output' %in% names(args) && 'dir' %in% names(args[['output']])) { 
       args[['output']][['dir']] = file.path(args[['output']][['dir']], hash)
     }
@@ -145,7 +146,7 @@ load_yaml_args <- function(file, hash=NULL) {
       for (name in names(output_names)) {
         args[['output']][[name]] <- output_names[[name]]
       }
-      cmds[[paste(run, chain, sep='-')]] <- args 
+      cmds[[paste(run, i, chain, sep=':')]] <- args 
     }
   }
   return(cmds)
