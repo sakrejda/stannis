@@ -116,11 +116,12 @@ load_yaml_args <- function(file, hash=NULL) {
   cmds <- list()
   for (i in 1:length(runs)) {
     run <- runs[[i]][['name']]
+    model <- runs[[i]][['model']]
     args <- merge_lists(defaults, runs[[i]])
     if (!is.null(hash) && 'output' %in% names(args) && 'dir' %in% names(args[['output']])) { 
       args[['output']][['dir']] = file.path(args[['output']][['dir']], hash)
     }
-    args[['binary']] <- file.path(args[['binary_dir']], run)
+    args[['binary']] <- file.path(args[['binary_dir']], model)
     args[['id']] <- sample(10^6, 1)
     if (!('sample' %in% names(args)) ||
         !('num_chains' %in% names(args[['sample']])) || 
@@ -146,7 +147,7 @@ load_yaml_args <- function(file, hash=NULL) {
       for (name in names(output_names)) {
         args[['output']][[name]] <- output_names[[name]]
       }
-      cmds[[paste(run, i, chain, sep=':')]] <- args 
+      cmds[[paste(name, model, i, chain, sep=':')]] <- args 
     }
   }
   return(cmds)
