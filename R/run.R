@@ -53,7 +53,7 @@ run_model_cmd <- function(...) {
     out <- ""
     err <- ""
   }
-  if (out == "" || err == "") 
+  if (out == "" || err == "" || ('wait' %in% names(args_in) && args_in[['wait']] == TRUE)) 
     wait = TRUE
   else
     wait = FALSE
@@ -153,12 +153,15 @@ load_yaml_args <- function(file, hash=NULL) {
   return(cmds)
 }
 
-run_yaml <- function(file, hash=NULL) {  
+run_yaml <- function(file, hash=NULL, cores = getOption("cl.cores", 1)) {  
   args <- load_yaml_args(file, hash) 
-  for (run in args) {
+  for(run in args) {
     saveRDS(object=args, file=run[['output']][['control']])
-    o <- do.call(what=run_model_cmd, args=run)
   }
+  cl <- parallel::makeCluster(cores)
+  o <- parallel::clusterApply(cl, args, 
+    function(x) do.call(what=run_model_cmd, args=c(x, list(wait=TRUE))),
+    .scheduling = 'dynamic')
   return(args)
 }
 
