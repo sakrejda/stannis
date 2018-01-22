@@ -156,7 +156,7 @@ load_yaml_args <- function(file, hash=NULL) {
 run_yaml <- function(file, hash=NULL, cores = getOption("cl.cores", 1)) {  
   args <- load_yaml_args(file, hash) 
   for(run in args) {
-    saveRDS(object=args, file=run[['output']][['control']])
+    saveRDS(object=run, file=run[['output']][['control']])
   }
   cl <- parallel::makeCluster(cores)
   o <- parallel::clusterApply(cl, args, 
