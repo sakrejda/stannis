@@ -159,9 +159,9 @@ run_yaml <- function(file, hash=NULL, cores = getOption("cl.cores", 1)) {
     saveRDS(object=run, file=run[['output']][['control']])
   }
   cl <- parallel::makeCluster(cores)
-  o <- parallel::clusterApply(cl, args, 
+  o <- parallel::clusterMap(cl,
     function(x) do.call(what=run_model_cmd, args=c(x, list(wait=TRUE))),
-    .scheduling = 'dynamic')
+    args, .scheduling = 'dynamic')
   return(args)
 }
 
