@@ -122,7 +122,6 @@ load_yaml_args <- function(file, hash=NULL) {
       args[['output']][['dir']] = file.path(args[['output']][['dir']], hash)
     }
     args[['binary']] <- file.path(args[['binary_dir']], model)
-    args[['id']] <- sample(10^6, 1)
     if (!('sample' %in% names(args)) ||
         !('num_chains' %in% names(args[['sample']])) || 
         isTRUE(args[['sample']][['num_chains']] < 1)) {
@@ -143,6 +142,7 @@ load_yaml_args <- function(file, hash=NULL) {
       if ('output' %in% names(args) && 'dir' %in% names(args[['output']])) {
         output_names <- lapply(output_names, 
           function(x) file.path(args[['output']][['dir']], x))
+        args[['check_file']] <- file.path(args[['output']][['dir']], paste0(stub, '.check'))
       }
       for (name in names(output_names)) {
         args[['output']][[name]] <- output_names[[name]]
@@ -160,8 +160,12 @@ run_yaml <- function(file, hash=NULL, cores = getOption("cl.cores", 1)) {
   }
   cl <- parallel::makeCluster(cores)
   o <- parallel::clusterMap(cl,
-    function(x) do.call(what=run_model_cmd, args=c(x, list(wait=TRUE))),
-    args, .scheduling = 'dynamic')
+    function(x) {
+      check_file <- args[['check_file']]
+      if (!file.exists(check_file)) {
+        do.call(what=run_model_cmd, args=c(x, list(wait=TRUE)))
+      } 
+    }, args, .scheduling = 'dynamic')
   return(args)
 }
 
