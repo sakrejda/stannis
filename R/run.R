@@ -164,7 +164,8 @@ run_yaml <- function(file, hash=NULL, cores = getOption("cl.cores", 1)) {
       check_file <- args[['check_file']]
       if (!file.exists(check_file)) {
         do.call(what=run_model_cmd, args=c(x, list(wait=TRUE)))
-      } 
+        file.create(check_file)
+      }
     }, args, .scheduling = 'dynamic')
   return(args)
 }
