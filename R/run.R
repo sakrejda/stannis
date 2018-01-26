@@ -161,7 +161,7 @@ run_yaml <- function(file, hash=NULL, cores = getOption("cl.cores", 1)) {
   cl <- parallel::makeCluster(cores)
   o <- parallel::clusterMap(cl,
     function(x) {
-      check_file <- args[['check_file']]
+      check_file <- x[['check_file']]
       if (!file.exists(check_file)) {
         do.call(what=run_model_cmd, args=c(x, list(wait=TRUE)))
         file.create(check_file)
