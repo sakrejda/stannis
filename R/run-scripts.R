@@ -30,14 +30,17 @@ run_data_shim = function(run) {
 run_isolated_script = function(run, e = new.env(parent = parent.env(.GlobalEnv))) {
   name = run[['name']]
   id = run[['id']]
+  target_dir = path.expand(run[['target_dir']])
   sources = run[['sources']]
+  if ("$TARGET" %in% sources) {
+    sources[sources == '$TARGET'] <- target_dir
+  }
   deps = run[['dependencies']]
   script = dir(path = sources, pattern = run[['script']], full.names=TRUE)[1] %>% path.expand
   isolation_dir = tempfile(pattern = paste0(name, "-", id, "-"))
   if (!dir.exists(isolation_dir)) {
     dir.create(path = isolation_dir, showWarnings = TRUE, recursive = TRUE)
   }
-  target_dir = run[['target_dir']]
   dep_paths = list() 
   dep_links = list()
   for (d in deps) {
@@ -48,7 +51,6 @@ run_isolated_script = function(run, e = new.env(parent = parent.env(.GlobalEnv))
       copy_failed(dep_paths[[d]][!did_copy], dep_links[[d]][!did_copy])
   }
   cwd = getwd()
-  target_dir = path.expand(target_dir)
   if (substr(target_dir, 1, 1) != "/") {
     target_dir = file.path(cwd, target_dir)
   }
