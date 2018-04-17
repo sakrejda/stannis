@@ -55,6 +55,7 @@ run_isolated_script = function(run, e = new.env(parent = parent.env(.GlobalEnv))
     target_dir = file.path(cwd, target_dir)
   }
   assign(x = "target_dir", value = target_dir, envir = e)
+  assign(x = "control", value = run, envir = e)
   tryCatch(expr = {
     setwd(isolation_dir)
     if (extension(script) == "R") {
