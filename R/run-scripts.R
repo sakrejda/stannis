@@ -78,14 +78,15 @@ run_data_yaml = function(file, hash=NULL, cores = getOption("cl.cores", 1)) {
   defaults = control[['defaults']]
   runs = control[['runs']]
   for ( i in 1:length(runs)) {
-    run_name = runs[[i]][['name']]
-    sources = runs[[i]][['source_dir']]
-    ## FIXME: could merge defaults in here for each runs[[i]]
-    if (runs[[i]][['type']] == 'data-shim') {
-      run_data_shim(runs[[i]]) 
+    run = merge_lists(defaults, runs[[i]])
+    run_name = run[['name']]
+    run[['full-name']] <- process_stub(run)
+    sources = run[['source_dir']]
+    if (run[['type']] == 'data-shim') {
+      run_data_shim(run) 
     }
-    if (runs[[i]][['type']] == 'script') {
-      run_isolated_script(runs[[i]])
+    if (run[['type']] == 'script') {
+      run_isolated_script(run)
     } 
   }
 
