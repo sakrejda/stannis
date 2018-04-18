@@ -5,7 +5,7 @@ process_stub <- function(args) {
     name_parts <- strsplit(name, "/", fixed=TRUE)[[1]]
     if (length(name_parts) == 1 && name %in% names(x)) {
       return(x[[name]])
-    } else if (length(name_parts) > 1 && name %in% names(x)) {
+    } else if (length(name_parts) > 1 && name_parts[1] %in% names(x)) {
       return(get_element(x[[name_parts[1]]], paste(name_parts[2:length(name_parts)], collapse="/")))
     } else {
       stop(paste0("'", name, "' required to process stub."))
