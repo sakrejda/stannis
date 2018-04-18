@@ -15,7 +15,7 @@ process_stub <- function(args) {
   stub <- get_element(args, 'stub')
   stub_idx <- gregexpr(pattern = '\\[\\[([A-Z/]{1,100})\\]\\]', text=stub)[[1]]
   n_stubs <- length(stub_idx)
-  stub_starts <- c(stub_idx) 
+  stub_starts <- c(stub_idx) + 2 
   stub_stops <- c(stub_starts + attr(stub_idx, 'match.length')) - 5
   stub_parts <- substr(rep(stub, n_stubs), stub_starts, stub_stops)
 
