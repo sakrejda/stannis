@@ -77,7 +77,7 @@ run_isolated_script = function(run, e = new.env(parent = parent.env(.GlobalEnv))
   return(e) 
 }
 
-run_yaml = function(file) {
+run_script_yaml = function(file) {
   control = yaml::yaml.load_file(file)
   defaults = control[['defaults']]
   runs = control[['runs']]
