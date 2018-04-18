@@ -77,7 +77,7 @@ run_isolated_script = function(run, e = new.env(parent = parent.env(.GlobalEnv))
   return(e) 
 }
 
-run_data_yaml = function(file, hash=NULL, cores = getOption("cl.cores", 1)) {
+run_yaml = function(file) {
   control = yaml::yaml.load_file(file)
   defaults = control[['defaults']]
   runs = control[['runs']]
