@@ -54,6 +54,9 @@ run_isolated_script = function(run, e = new.env(parent = parent.env(.GlobalEnv))
   if (substr(target_dir, 1, 1) != "/") {
     target_dir = file.path(cwd, target_dir)
   }
+  if (!dir.exists(target_dir)) {
+    dir.create(target_dir, recursive=TRUE)
+  }
   assign(x = "target_dir", value = target_dir, envir = e)
   assign(x = "control", value = run, envir = e)
   tryCatch(expr = {
