@@ -45,11 +45,11 @@ run_isolated_script = function(run, e = new.env(parent = parent.env(.GlobalEnv))
   dep_links = list()
   for (d in deps) {
     dep_paths[[d]] = dir(path = sources, pattern = d, full.names=TRUE)[1]
-    dep_links[[d]] = file.path(isolation_dir, d)
+    dep_links[[d]] = file.path(isolation_dir, basename(dep_paths[[d]])
     did_copy = file.copy(from = dep_paths[[d]], to = dep_links[[d]], overwrite=TRUE)
     if (any(!did_copy)) 
       copy_failed(dep_paths[[d]][!did_copy], dep_links[[d]][!did_copy])
-    if (extension(d) == "R") {
+    if (extension(dep_links[[d]]) == "R") {
       source(dep_links[[d]], local = e)
     }
   }
