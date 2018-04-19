@@ -49,6 +49,9 @@ run_isolated_script = function(run, e = new.env(parent = parent.env(.GlobalEnv))
     did_copy = file.copy(from = dep_paths[[d]], to = dep_links[[d]], overwrite=TRUE)
     if (any(!did_copy)) 
       copy_failed(dep_paths[[d]][!did_copy], dep_links[[d]][!did_copy])
+    if (extension(d) == "R") {
+      source(dep_links[[d]], local = e)
+    }
   }
   cwd = getwd()
   if (substr(target_dir, 1, 1) != "/") {
