@@ -45,6 +45,11 @@ run_isolated_script = function(run, e = new.env(parent = parent.env(.GlobalEnv))
   dep_links = list()
   for (d in deps) {
     dep_paths[[d]] = dir(path = sources, pattern = d, full.names=TRUE)[1]
+    if (is.na(dep_paths[[d]])) {
+      msg <- paste("Find failed for file: '", d, "'\n", 
+        "Sources searched: ", paste(sources, collapse=", "))
+      stop(msg)
+    }
     dep_links[[d]] = file.path(isolation_dir, basename(dep_paths[[d]]))
     did_copy = file.copy(from = dep_paths[[d]], to = dep_links[[d]], overwrite=TRUE, recursive=TRUE)
     if (any(!did_copy)) 
