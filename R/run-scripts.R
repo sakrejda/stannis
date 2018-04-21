@@ -77,7 +77,7 @@ run_isolated_script = function(run, e = new.env(parent = parent.env(.GlobalEnv))
     setwd(cwd)
   }, error = function(e) {setwd(cwd); stop(e)}, 
      finally = function(e) {setwd(cwd)})
-  all_files = dir(isolation_dir, full.names=TRUE)
+  all_files = dir(isolation_dir, full.names=TRUE, recursive=TRUE)
   for (f in all_files) {
     bn = basename(f)
     file.copy(from = f, to = file.path(target_dir, bn))
