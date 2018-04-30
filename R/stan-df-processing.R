@@ -5,6 +5,7 @@
 #'        parameter.
 #' @return array of correct dimension for the given parameter
 #'         indexed as in the Stan model.
+#' @export
 generate_parameter_array <- function(data) {
   column_names <- colnames(data)
   num_rows <- nrow(data)
@@ -20,12 +21,11 @@ generate_parameter_array <- function(data) {
 	return(o)
 }
 
-
-
 #' Split Stan-style data from a .csv file by parameter.
 #' @param x Stan-format .csv parameter data.
 #' @return list of Stan-format parameter data, with one 
 #'         entry (data.frame) per parameter
+#' @export
 split_data_by_parameter <- function(data) {
   parameters <- colnames(data) %>% extract_parameter_names
   o <- list()
@@ -40,6 +40,9 @@ split_data_by_parameter <- function(data) {
 
 #' Generate one properly sized array for each Stan parameter
 #' in a given Stan-format data frame.
+#' @param data stan .csv file loaded as data.frame
+#' @return list of arrays (element per named parameter).
+#' @export
 generate_parameter_arrays <- function(data) {
   data <- split_data_by_parameter(data)
   d <- list()
@@ -47,10 +50,6 @@ generate_parameter_arrays <- function(data) {
     d[[name]] <- generate_parameter_array(data[[name]])
   return(d)
 }
-
-
-
-
 
 
 

@@ -1,12 +1,18 @@
 #' Basic method to return one CmdStan argument.
+#'
 #' @param name name of the parameter to add.
 #' @param value value the parameter takes.
+#' @return combined string argument.
+#' @export
 push_arg <- function(name, value) paste0(name, "=", value)
 
 #' Basic method to pull out arguments by name
-#' from a list
+#' from a list.
+#'
 #' @param args (potentially nested) list containing arguments.
 #' @param names vector of named arguments to pull out.
+#' @return turn vector of arguments as strings
+#' @export
 push_args <- function(args, names) {
   args_out <- ""
   for (name in names) {
@@ -17,7 +23,11 @@ push_args <- function(args, names) {
   return(args_out)
 }
  
-
+#' Add a data argument.
+#'
+#' @param args argument list
+#' @return argument string.
+#' @export
 push_data <- function(args) {
   if (!('data' %in% names(args)))
     return("")
@@ -30,6 +40,11 @@ push_data <- function(args) {
   return(stub)
 }
 
+#' Add a random init seed argument
+#'
+#' @param args argument list
+#' @return argument string
+#' @export
 push_random <- function(args) {
   if (!('random' %in% names(args)))
     return("")
@@ -39,6 +54,11 @@ push_random <- function(args) {
   return(stub)
 }
 
+#' Add output arguments.
+#'
+#' @param args argument list
+#' @return argument string
+#' @export
 push_output <- function(args) {
   if (!('output' %in% names(args))) 
     return("")
@@ -49,6 +69,11 @@ push_output <- function(args) {
   return(stub)
 }
 
+#' add nuts sampler sub-arguments.
+#'
+#' @param args argument list
+#' @return argument string
+#' @export
 push_nuts <- function(args) {
   if (!("nuts" %in% names(args))) 
     return("")
@@ -56,6 +81,11 @@ push_nuts <- function(args) {
   return(stub)
 }
 
+#' add static HMC sub-arguments.
+#'
+#' @param args argument list
+#' @return argument string
+#' @export
 push_static <- function(args) {
   if (!("static" %in% names(args)))
     return("")
@@ -63,6 +93,11 @@ push_static <- function(args) {
   return(stub)
 }
 
+#' Add HMC engine sub-arguments
+#'
+#' @param args argument list
+#' @return argument string
+#' @export
 push_engine <- function(args) {
   if (!("engine" %in% names(args)))
     return("")
@@ -77,6 +112,11 @@ push_engine <- function(args) {
   return(stub)
 }
 
+#' Add HMC metric sub-arguments.
+#'
+#' @param args argument list
+#' @return argument string
+#' @export
 push_metric <- function(args) {
   if (!('metric' %in% names(args)))
     return("")
@@ -84,6 +124,11 @@ push_metric <- function(args) {
     return(push_args(args, 'metric'))
 }
 
+#' Add HMC algorithm sub-arguments
+#'
+#' @param args argument list
+#' @return argument string
+#' @export
 push_hmc <- function(args) {
   if (!("hmc" %in% names(args)))
     return("")
@@ -95,10 +140,20 @@ push_hmc <- function(args) {
   return(stub)
 }
 
+#' Add fixed_param non-sampler arguments.
+#'
+#' @param args argument list
+#' @return argument string
+#' @export
 push_fixed <- function(args) {
   return("algorithm=fixed_param")
 }
 
+#' Add algorithm sub-arguments.
+#'
+#' @param args argument list
+#' @return argument string
+#' @export
 push_algorithm <- function(args) {
   if (!("algorithm" %in% names(args))) {
     return("")
@@ -111,6 +166,11 @@ push_algorithm <- function(args) {
   return(stub)
 }
 
+#' Add sampler adaptation sub-arguments.
+#'
+#' @param args argument list
+#' @return argument string
+#' @export
 push_adapt <- function(args) {
   if (!('adapt' %in% names(args)))
     return("")
@@ -122,6 +182,11 @@ push_adapt <- function(args) {
   return(stub)
 }
 
+#' Add sampler sub-arguments
+#'
+#' @param args argument list
+#' @return argument string
+#' @export
 push_sample <- function(args) {
   if (!('sample' %in% names(args)))
     return("method=sample")

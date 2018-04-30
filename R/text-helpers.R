@@ -1,6 +1,7 @@
 #' Trims whitespace from a string front and back.
 #' @param s the string
 #' @return s without leading and trailing whitespace.
+#' @export
 trim_whitespace <- function(s) {
 	s <- gsub(pattern='^\\s*', replacement='', x=s)
 	s <- gsub(pattern='\\s*$', replacement='', x=s)
@@ -11,6 +12,7 @@ trim_whitespace <- function(s) {
 #' @param s the string
 #' @param c comment character
 #' @return s without leading and trailing whitespace.
+#' @export
 trim_comment_char <- function(s, c='#') {
 	s <- gsub(pattern=paste0('^\\s*', c, '\\s*'), replacement='', x=s)
 	return(s)
@@ -20,6 +22,7 @@ trim_comment_char <- function(s, c='#') {
 #' @param file read all lines from here
 #' @param split string to distinguish lhs from rhs
 #' @return named vector with values as values and tags as names.
+#' @export
 read_key_value <- function(file, split='=') {
   data <- readLines(file) %>% unlist %>%
     process_key_value
@@ -30,6 +33,7 @@ read_key_value <- function(file, split='=') {
 #' @param x vector of strings to process
 #' @param split string to distinguish lhs from rhs
 #' @return named vector with values as values and tags as names.
+#' @export
 process_key_value <- function(x, split='=') {
   splits <- strsplit(x=x, split=split) 
   lhs <- lapply(splits, `[`, 1) %>% sapply(trim_whitespace)
@@ -43,10 +47,18 @@ process_key_value <- function(x, split='=') {
 #' @param path non-normalized paths.
 #' @param separator the path separator, typically '/'
 #' @return list of normalized and split path parts.
+#' @export
 path_split <- function(path, separator='/') {                                                                                                          
   path <- normalizePath(path)                                                                                                           
   path <- strsplit(path, separator, fixed=TRUE)                                                                                               
   return(path)                                                                                                                          
 }                                                                                                                                       
-                                                                                                                                        
+
+#' Retrieve just file extension from a string
+#'
+#' @param s string
+#' @param split what to split the extension with
+#' @return extension 
+#' @export
+extension = function(s) strsplit(x = s, split = '\\.') %>% last() 
 

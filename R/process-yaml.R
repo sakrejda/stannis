@@ -1,33 +1,9 @@
 
-process_stub <- function(args) {
-
-  get_element <- function(x, name) {
-    name_parts <- strsplit(name, "/", fixed=TRUE)[[1]]
-    if (length(name_parts) == 1 && name %in% names(x)) {
-      return(x[[name]])
-    } else if (length(name_parts) > 1 && name_parts[1] %in% names(x)) {
-      return(get_element(x[[name_parts[1]]], paste(name_parts[2:length(name_parts)], collapse="/")))
-    } else {
-      stop(paste0("'", name, "' required to process stub."))
-    }
-  }
-
-  stub <- get_element(args, 'stub')
-  stub_idx <- gregexpr(pattern = '\\[\\[([A-Z/]{1,100})\\]\\]', text=stub)[[1]]
-  n_stubs <- length(stub_idx)
-  stub_starts <- c(stub_idx) + 2 
-  stub_stops <- c(stub_starts + attr(stub_idx, 'match.length')) - 5
-  stub_parts <- substr(rep(stub, n_stubs), stub_starts, stub_stops)
-
-  for (i in 1:n_stubs) {
-    part_pattern <- paste0('\\[\\[', stub_parts[i], '\\]\\]')
-    part_value <- get_element(args, tolower(stub_parts[i]))
-    stub <- gsub(part_pattern, part_value, stub)
-  }
-
-  return(stub)
-}
-
+#' Combine two lists by merging matching sub-trees.
+#' 
+#' @param ... arbitrary number of lists.
+#' @return single merged list
+#' @export
 merge_lists <- function(...) {
   args_in <- list(...)
   args_out <- args_in[[1]]
@@ -48,6 +24,28 @@ merge_lists <- function(...) {
     }
   }
   return(args_out)
+}
+
+#' Load a list of arg-trees from a .yaml file
+#' 
+#' @param file a .yaml file with arg-tree structure
+#'        and defaults.
+#' @param list of arg-trees with hashes, not finalized.
+#' @export
+load_yaml_args <- function(file) {
+  control <- yaml::yaml.load_file(file)
+  defaults <- control[['defaults']]
+  all_args <- list()
+  for (i in 1:length(control[['runs']])) {
+    args <- merge_lists(defaults, control[['runs']][[i]])
+    args[['binary']] <- compile_model(args)
+    args <- flatten_args(args)
+    all_args <- c(all_args, args)
+  }
+  for (i in 1:length(all_args)) {
+    all_args[i][['hash']] <- create_hash(all_args[i])
+  }
+  return(all_args)
 }
 
 

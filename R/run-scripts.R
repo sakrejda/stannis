@@ -1,16 +1,10 @@
-copy_failed = function(from, to) { 
-  msg = "Copying failed: \n"
-  for (i in 1:length(from)) {
-    msg = paste0(msg, 
-      "  from: ", from[i], "\n",
-      "  to:   ", to[i], "\n")
-  }
-  stop(msg)
-}
 
-last = function(x) sapply(x, function(z) z[length(z)])
-extension = function(s) strsplit(x = s, split = '\\.') %>% last() 
-
+#' Run a simple R script based on one input and one set of transformations.
+#'
+#' @param run a list with elements for the file listing transformations and
+#'        requirements as well as where to find them.
+#' @return TRUE if it completes... output goes into a file...
+#' @export
 run_data_shim = function(run) {
   requirements = run[['requirements']]
   transformations = run[['transformations']]
@@ -27,6 +21,14 @@ run_data_shim = function(run) {
   return(TRUE)
 }
 
+
+#' Run a script in an isolated environment and move outputs into a target
+#' directory
+#'
+#' @param run list describing the job
+#' @param e environment to isolate in.
+#' @return e, with cruft from script.
+#' @export
 run_isolated_script = function(run, e = new.env(parent = parent.env(.GlobalEnv))) {
   name = run[['name']]
   id = run[['id']]
@@ -85,6 +87,13 @@ run_isolated_script = function(run, e = new.env(parent = parent.env(.GlobalEnv))
   return(e) 
 }
 
+#' Run either a shell script, a simple data-shim or a full
+#' isolated script.  This is all too complicated. :/
+#'
+#' @param .yaml file with control data describing inputs
+#'        outputs and targets along with the script to run.
+#' @return NULL
+#' @export
 run_script_yaml = function(file) {
   control = yaml::yaml.load_file(file)
   defaults = control[['defaults']]

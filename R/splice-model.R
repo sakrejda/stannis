@@ -1,3 +1,43 @@
+#' Find which items of a file read in as a character vector
+#' include tags.
+#'
+#' @param text file as a character vector (1 element per line).
+#' @return vector of line numbers with tags.
+#' @export
+tag_find <- function(text) text[grepl(pattern='// \\[\\[.*\\]\\]', x=text) %>% which]
+
+#' Extract the tag from file read in as a vector of text strings.
+#'
+#' @param text file as a vector of text strings.
+#' @return all tags
+#' @export
+tag_pull <- function(text)  gsub(pattern='// \\[\\[(.*)\\]\\]', replacement = '\\1', x=text)
+
+#' File matching a tag
+#'
+#' @param tag
+#' @return implied file name
+#' @export
+tag_file <- function(tag) {
+  files <- gsub(pattern='::', replacement='-', x=tag) %>% paste('chunk', sep='.')
+  names(files) <- tag
+  return(files)
+}
+
+#' Return first candidate file in search directories
+#'
+#' @param search directories to look in (comma-separated string).
+#' @param name file name to search for.
+#' @return first candidate matching name.
+#' @export
+find_file <- function(search, name) {
+  search <- strsplit(search, split=',', fixed=TRUE) %>% unlist
+  clean_search <- gsub(pattern='[ \t]', replacement='', x=search)
+  candidates <- sapply(clean_search, dir, pattern=name, full.names=TRUE)
+  return(candidates[1])
+}
+
+
 #' Substitute tags for the referenced file content. 
 #' 
 #' @param model full path to model file with tags in it.  Must be specified.
@@ -7,24 +47,12 @@
 #' @param output full path to file that model will be 
 #'        written into. If not specified it is derived from the
 #'        model path by replacing the extension with .stan
+#' @export
 substitutions <- function(model = NULL, search = NULL, output = NULL) {
   if (is.null(model)) 
     stop("Argument 'model' can not be left unspecified or NULL.")
   if (is.null(search))
     search <- dirname(model)
-  tag_find <- function(f) f[grepl(pattern='// \\[\\[.*\\]\\]', x=f) %>% which]
-  tag_pull <- function(text)  gsub(pattern='// \\[\\[(.*)\\]\\]', replacement = '\\1', x=text)
-  tag_file <- function(tag) {
-    files <- gsub(pattern='::', replacement='-', x=tag) %>% paste('chunk', sep='.')
-    names(files) <- tag
-    return(files)
-  }
-  find_file <- function(search, name) {
-    search <- strsplit(search, split=',', fixed=TRUE) %>% unlist
-    clean_search <- gsub(pattern='[ \t]', replacement='', x=search)
-    candidates <- sapply(clean_search, dir, pattern=name, full.names=TRUE)
-    return(candidates[1])
-  }
   
   model <- readLines(model)
   tags <- tag_find(model) 

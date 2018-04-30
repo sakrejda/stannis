@@ -3,6 +3,7 @@
 #'
 #' @param file An output file produced by CmdStan.
 #' @return A data.frame.
+#' @export
 read_stan_data <- function(file) {
   o <- read.table(file=file, header=TRUE, sep=',', stringsAsFactors=FALSE, comment.char='#')
   return(o)
@@ -13,6 +14,7 @@ read_stan_data <- function(file) {
 #'
 #' @param file An output file produced by CmdStan.
 #' @return A data.frame.
+#' @export
 read_stan_metadata <- function(file) {
   lines <- readLines(file)
   control <- get_control_lines(lines)
@@ -49,7 +51,11 @@ read_stan_metadata <- function(file) {
   return(o)
 }
 
-#' Read Stan file
+#' Read Stan file and metadata
+#'
+#' @param file path
+#' @return list with samples and metadata
+#' @export
 read_stan <- function(file) {
   o <- list(
     metadata <- read_stan_metadata(file),
@@ -58,6 +64,13 @@ read_stan <- function(file) {
   return(o)
 }
 
+
+#' Read a set of Stan files and their metadata
+#'
+#' @param root directory to read from
+#' @param pattern pattern of filenames to read
+#' @return a processed and merged list of files.
+#' @export 
 read_stan_set <- function(root='.', pattern) {
   files <- dir(path=root, pattern=pattern, full.names=TRUE)
   metadata <- lapply(files, read_stan_metadata)
