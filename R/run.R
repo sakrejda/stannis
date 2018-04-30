@@ -34,94 +34,87 @@ construct_cmdline <- function(...) {
 }
 
 run_model_cmd <- function(...) {
-  args_in <- list(...)
+  args_in <- finalize_args(list(...))
   cmd <- construct_cmdline(...) %>% strsplit('[ ]+') %>% `[[`(1)
   binary <- cmd[1]
   args <- cmd[2:length(cmd)]
-  if ('output' %in% names(args_in)) {
-    if ('terminal' %in% names(args_in[['output']])) {
-      out <- args_in[['output']][['terminal']]
-    } else {
-      out <- ""
-    }
-    if ('error' %in% names(args_in[['output']])) {
-      err <- args_in[['output']][['error']]
-    } else {
-      err <- ""
-    }
-  } else {
-    out <- ""
-    err <- ""
-  }
-  if (out == "" || err == "" || ('wait' %in% names(args_in) && args_in[['wait']] == TRUE)) 
+  out <- args_in[['output']][['terminal']]
+  err <- args_in[['output']][['error']]
+  if ('wait' %in% names(args_in) && args_in[['wait']] == TRUE) 
     wait = TRUE
   else
     wait = FALSE
-  system2(command=binary, args=args, 
-    stdout=out, stderr=err, wait=wait)
+  system2(command=binary, args=args, stdout=out, stderr=err, wait=wait)
 }
 
+finalize_args <- function(args) {
+  if (!is.null(args[['target_dir']])) {
+    output_prefix <- file.path(args[['target_dir']], args[['hash']], args[['chain']])
+    for (output in names(args[['output']])) {
+      args[['output']][[output]] <- file.path(output_prefix, args[['output']][[output]])
+    }
+  }
+  if (!is.null(args[['data_dir']])) {
+    data_prefix <- file.path(args[['data_dir']], args[['hash']], args[['chain']])
+    args[['data']][['file']] <- file.path(data_prefix, args[['data']][['file']])
+  }
+  if (!is.null(args[['init_dir']])) {
+    init_prefix <- file.path(args[['init_dir']], args[['hash']], args[['chain']])
+    args[['init']] <- file.path(init_prefix, args[['init']])
+  }
+  return(args)
+}
 
+# return binary path
+compile_model <- function(args) {}
 
-load_yaml_args <- function(file, hash=NULL) {
+create_hash <- function(args) {}
+
+# expand chains, inits, or both
+flatten_args <- function(args) {
+  args_out <- list()
+  for (arg in args) {
+    n_inits <- length(arg[['init']])
+    n_chains <- arg[['sample']][['n_chains']]
+    n_total <- n_inits * n_chains
+    for (chain in 1:n_total) {
+      arg_append <- arg
+      arg_append[['sample']][['chain']] <- chain
+      arg_append[['init']] <- arg[['init']][(c - 1) %% n_inits + 1]
+      args_out <- c(args_out, arg_append)
+    }
+  }
+  return(args_out)
+}
+
+load_yaml_args <- function(file) {
   control <- yaml::yaml.load_file(file)
   defaults <- control[['defaults']]
-  runs <- control[['runs']]
-  cmds <- list()
-  for (i in 1:length(runs)) {
-    run <- runs[[i]][['name']]
-    model <- runs[[i]][['model']]
-    args <- merge_lists(defaults, runs[[i]])
-    if (!is.null(hash) && 'output' %in% names(args) && 'dir' %in% names(args[['output']])) { 
-      args[['output']][['dir']] = file.path(args[['output']][['dir']], hash)
-    }
-    args[['binary']] <- file.path(args[['binary_dir']], model)
-    if (!('sample' %in% names(args)) ||
-        !('num_chains' %in% names(args[['sample']])) || 
-        isTRUE(args[['sample']][['num_chains']] < 1)) {
-      args[['sample']][['num_chains']] <- 1
-    } else {
-      args[['sample']][['num_chains']] <- as.integer(args[['sample']][['num_chains']])
-    }
-    for (chain in 1:args[['sample']][['num_chains']]) { 
-      args[['chain']] <- chain
-      stub <- process_stub(args)
-      args[['tag']] <- stub
-      output_names <- list(
-        terminal = paste0(stub, '-terminal.txt'),
-        error = paste0(stub, '-errors.txt'),
-        file = paste0(stub, '-output.csv'),
-        diagnostics = paste0(stub, '-diagnostics.csv'),
-        control = paste0(stub, '-control.rds')
-      )
-      if ('output' %in% names(args) && 'dir' %in% names(args[['output']])) {
-        output_names <- lapply(output_names, 
-          function(x) file.path(args[['output']][['dir']], x))
-        args[['check_file']] <- file.path(args[['output']][['dir']], paste0(stub, '.check'))
-      }
-      for (name in names(output_names)) {
-        args[['output']][[name]] <- output_names[[name]]
-      }
-      cmds[[paste(name, model, i, chain, sep=':')]] <- args 
-    }
+  all_args <- list()
+  for (i in 1:length(control[['runs']])) {
+    args <- merge_lists(defaults, control[['runs']][[i]])
+    args[['binary']] <- compile_model(args)
+    args[['output']] <- list()
+    args[['output']][['terminal']] = 'terminal.txt'
+    args[['output']][['error']] = 'error.txt'
+    args[['output']][['file']] = 'output.csv'
+    args[['output']][['diagnostics']] = 'diagnostics.csv'
+    args[['output']][['control']] = 'control.yaml'
+    args <- flatten_args(args)
+    all_args <- c(all_args, args)
   }
-  return(cmds)
+  for (i in 1:length(all_args)) {
+    all_args[i][['hash']] <- create_hash(all_args[i])
+  }
+  return(all_args)
 }
 
-run_yaml <- function(file, hash=NULL, cores = getOption("cl.cores", 1)) {  
-  args <- load_yaml_args(file, hash) 
-  for(run in args) {
-    saveRDS(object=run, file=run[['output']][['control']])
-  }
+run_yaml <- function(file, target_dir, cores = getOption("cl.cores", 1)) {  
+  args <- load_yaml_args(file) 
   cl <- parallel::makeCluster(cores)
-  o <- parallel::clusterMap(cl,
-    function(x) {
-      check_file <- x[['check_file']]
-      if (!file.exists(check_file)) {
-        do.call(what=run_model_cmd, args=c(x, list(wait=TRUE)))
-        file.create(check_file)
-      }
-    }, args, .scheduling = 'dynamic')
+  o <- parallel::clusterMap(cl, function(run) {
+    do.call(what=run_model_cmd, args=c(run, list(wait=TRUE)))
+  }, args, .scheduling = 'dynamic')
   return(args)
 }
 
