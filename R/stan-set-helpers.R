@@ -1,0 +1,59 @@
+#' Read a set of Stan files and their metadata
+#'
+#' @param root directory to read from
+#' @param pattern pattern of filenames to read
+#' @return a processed and merged list of files.
+#' @export 
+read_file_set <- function(root='.', pattern) {
+  files <- dir(path=root, pattern=pattern, full.names=TRUE)
+  n_chains <- length(files)
+  metadata <- lapply(files, read_stan_metadata)
+  ids <- sapply(metadata, `[[`, 'chain_id')
+  data <- lapply(files, function(f) {
+    d <- read_stan_data(f)
+    d[['iteration']] <- 1:nrow(d)
+    return(d)
+  })
+  grouping <- list()
+  for ( i in seq_along(ids)) {
+    grouping[[i]] <- data.frame(iteration = 1:nrow(data[[i]]))
+    grouping[[i]][['chain']] <- rep(i, nrow(data[[i]]))
+    grouping[[i]][['warmup']] <- 
+      data[[i]][['iteration']] <= metadata[[i]][['num_warmup']]
+    grouping[[i]][['post-warmup']] <- 
+      data[[i]][['iteration']] > metadata[[i]][['num_warmup']]
+  }
+  return(list(metadata=metadata, n_chains = n_chains, data=data,
+              grouping = grouping))
+}
+
+#' Merge chains
+#'
+#' @param set object created by `read_stan_set`
+#' @return set object with only one merged chain.
+#' @export
+merge_chains <- function(set) {
+  o <- list(n_chains = set[['n_chains']],
+    metadata = set[['metadata']],
+    data = list(merged = do.call(rbind, set[['data']])),
+    grouping = list(merged = do.call(rbind, set[['grouping']]))
+  )
+  return(o)
+}
+
+#' Trim warmup
+#'
+#' @param set object created by `read_stan_set`
+#' @return same object but with warmup iterations removed.
+#' @export
+trim_warmup <- function(set) {
+  for (i in seq_along(set[['data']])) {
+    set[['data']][[i]] <- set[['data']][[i]][
+      set[['grouping']][[i]][['post-warmup']]]
+    set[['grouping']][[i]] <- set[['grouping']][[i]][
+      set[['grouping']][[i]][['post-warmup']]]
+  }
+  return(set)
+}
+
+
