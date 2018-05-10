@@ -1,35 +1,41 @@
 
-### tooling config:
-
-cmdstan:
-  source: "~/packages/cmdstan"
-
 defaults:
-  stub : "name:[[NAME]]-id:[[ID]]-chain:[[CHAIN]]-model:[[MODEL]]-data:[[DATA]]"
-  binary_dir : "./model-binaries"
+  project_id : "sub-national FPET"
+  method : 'sample'
   sample : 
-    num_chains : 2
-    num_samples : 500
-    num_warmup : 400
+    num_chains : 3
+    num_samples : 150
+    num_warmup : 200
     save_warmup : 1
     thin : 1
-  algorithm : 
-    engine : "nuts"
-    max_depth : 15
-  data :
-    file : "cu-data.rdump"
-    dir : "data"
+    algorithm : "hmc"
+    hmc :
+      engine : "nuts"
+      nuts : 
+        max_depth : 15
+      static : 
+        int_time : 6.28
+      metric : "diag_e"
+      stepsize : 1
+      stepsize_jitter : 0
   output :
     refresh : 1
-    dir : "fits"
+  target_dir: "output"
+  data_dir: "data"
+  init_dir: "inits"
+  model_dir: "models"
+  binary_dir : "model-binaries"
 
-runs:
-  fp-logistic-level-w-AR-rev-01:
-    name : "check"
-  fp-logistic-level-w-AR-rev-02:
-    name : "check"
-  fp-logistic-rates-level-w-AR-rev-01:
-    name : "check"
-  fp-logistic-rates-w-OU-rev-01:
-    name : "check"
-
+runs: 
+  - model_name : "normal"
+    method : 'sample'
+    sample : 
+      num_warmup : 500
+      num_samples : 300
+  - model_name : "bernoulli"
+    method : 'sample'
+    sample : 
+      num_warmup : 500
+      num_samples : 300
+    data :
+      file : "coins.rdump"

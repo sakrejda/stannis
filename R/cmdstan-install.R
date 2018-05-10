@@ -5,10 +5,16 @@
 #' @return config object
 get_cmdstan = function(config_file) {
   config = yaml::yaml.load_file(input = config_file)
-  system2(command = "git", args = c("clone", 
-    "-b", config[['cmdstan_branch']], 
-    config[['cmdstan_repository']],
-    config[['cmdstan_dir']]))
+  if (!dir.exists(config[['cmdstan_dir']])) {
+    system2(command = "git", args = c("clone", 
+      "-b", config[['cmdstan_branch']], 
+      config[['cmdstan_repository']],
+      config[['cmdstan_dir']]))
+  } else {
+    system2(command = "git", args = c(
+    "-C", config[['cmdstan_dir']], 
+    "pull", "origin", config[['cmdstan_branch']]))
+  }
   system2(command = "git", args = c(
     "-C", config[['cmdstan_dir']], 
     "submodule", "update", "--init", "--recursive")) 

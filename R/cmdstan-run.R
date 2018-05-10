@@ -46,6 +46,7 @@ construct_cmdline <- function(...) {
 #' @export
 run_model_cmd <- function(...) {
   args_in <- finalize_args(list(...))
+  realize_args(args_in)
   cmd <- construct_cmdline(...) %>% strsplit('[ ]+') %>% `[[`(1)
   binary <- cmd[1]
   args <- cmd[2:length(cmd)]
@@ -64,7 +65,7 @@ run_model_cmd <- function(...) {
 #' @param file .yaml file with instructions
 #' @param cores number of cores to use for the run
 #' @export
-run_yaml <- function(file, cores = getOption("cl.cores", 1)) {  
+run_cmdstan <- function(file, cores = getOption("cl.cores", 1)) {  
   args <- load_yaml_args(file) 
   cl <- parallel::makeCluster(cores)
   o <- parallel::clusterMap(cl, function(run) {
