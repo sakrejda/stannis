@@ -52,6 +52,9 @@ finalize_args <- function(args) {
   if (!file.exists(args[['data']][['file']])) {
     msg <- paste0("Data file missing at: ", args[['data']][['file']])
     stop(msg)
+  } else {
+    file.copy(args[['data']][['file']], args[['fit_prefix']], 'data', 
+              overwrite=TRUE)
   }
 
   init_exists <- is.null(args[['init']])
@@ -63,6 +66,8 @@ finalize_args <- function(args) {
   if (is_init_file && !file.exists(args[['init']])) {
     msg <- paste0("Initial values file missing at: ", args[['init']])
     stop(msg)
+  } else {
+    file.copy(args[['init']], args[['fit_prefix']], overwrite=TRUE)
   }
   yaml::write_yaml(args, file = file.path(args[['output_prefix']], "finalized.yaml"))
   return(args)
