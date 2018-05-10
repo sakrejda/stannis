@@ -5,13 +5,13 @@
 #' @return config object
 get_cmdstan = function(config_file) {
   config = yaml::yaml.load_file(input = config_file)
-  if (!require(git2r)) {
-    stop("Package `git2r` is required to use this functionality.")
-  }
-  git2r::clone(url = config[['cmdstan_repository']],
-    local_path = config[['cmdstan_dir']],
-    branch = config[['cmdstan_branch']], checkout = TRUE)
-  ##### STILL DO SUBMODULE UPDATE
+  system2(command = "git", args = c("clone", 
+    "-b", config[['cmdstan_branch']], 
+    config[['cmdstan_repository']],
+    config[['cmdstan_dir']]))
+  system2(command = "git", args = c(
+    "-C", config[['cmdstan_dir']], 
+    "submodule", "update", "--init", "--recursive")) 
   return(config)
 }
 
@@ -23,7 +23,7 @@ build_cmdstan = function(config_file) {
   config = yaml::yaml.load_file(input = config_file)
   target_dir = config[['stannis_dir']]
   system2(command = config[['cmdstan_cmd']], 
-    args = c(config[['cmdstan_options']], "stanc"), 
+    args = c(config[['cmdstan_options']], "bin/stanc"), 
     stdout = file.path(config[['stannis_dir']], "cmdstan-build.log"),
     stderr = file.path(config[['stannis_dir']], "cmdstan-build.err"),
     wait = FALSE)
