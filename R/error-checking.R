@@ -30,5 +30,13 @@ copy_failed = function(from, to) {
   stop(msg)
 }
 
-
+#' Check if a path exists and is a directory
+#'
+#' @param p path to check
+#' @return TRUE iff conditions are met
+is_directory <- function(p) {
+  p = path.expand(p)
+  o = isTRUE(file.info(p)$isdir)
+  return(o)
+}
 
