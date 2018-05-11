@@ -46,8 +46,8 @@ construct_cmdline <- function(...) {
 #' @export
 run_model_cmd <- function(...) {
   args_in <- finalize_args(list(...))
-  realize_args(args_in)
-  cmd <- construct_cmdline(...) %>% strsplit('[ ]+') %>% `[[`(1)
+  cmd <- do.call(what = construct_cmdline, args = args_in) %>% 
+    strsplit('[ ]+') %>% `[[`(1)
   binary <- cmd[1]
   args <- cmd[2:length(cmd)]
   out <- args_in[['output']][['terminal']]
@@ -57,6 +57,8 @@ run_model_cmd <- function(...) {
   else
     wait = FALSE
   system2(command=binary, args=args, stdout=out, stderr=err, wait=wait)
+  args_in[['command']] <- cmd
+  return(args_in)
 }
 
 #' Run a set of CmdStan runs based on a set of arg-trees
@@ -67,10 +69,16 @@ run_model_cmd <- function(...) {
 #' @export
 run_cmdstan <- function(file, cores = getOption("cl.cores", 1)) {  
   args <- load_yaml_args(file) 
-  cl <- parallel::makeCluster(cores)
-  o <- parallel::clusterMap(cl, function(run) {
-    do.call(what=run_model_cmd, args=c(run, list(wait=TRUE)))
-  }, args, .scheduling = 'dynamic')
+  if (is.null(cores) || is.na(cores) || cores == 1) {
+    for (i in 1:length(args)) {
+      args[[i]] <- do.call(what = run_model_cmd, args = args[[i]])
+    }
+  } else {    
+    cl <- parallel::makeCluster(cores)
+    args <- parallel::clusterMap(cl, function(run) {
+      do.call(what=run_model_cmd, args=c(run, list(wait=TRUE)))
+    }, args, .scheduling = 'dynamic')
+  }
   return(args)
 }
 

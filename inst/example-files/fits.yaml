@@ -1,6 +1,6 @@
 
 defaults:
-  project_id : "sub-national FPET"
+  project_id : "testy-test"
   method : 'sample'
   sample : 
     num_chains : 3
@@ -32,9 +32,10 @@ runs:
     sample : 
       num_warmup : 500
       num_samples : 300
-  - model_name : "bernoulli"
+  - model_name : "binomial"
     method : 'sample'
     sample : 
+      num_chains : 8
       num_warmup : 500
       num_samples : 300
     data :

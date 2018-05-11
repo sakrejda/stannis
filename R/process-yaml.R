@@ -43,7 +43,7 @@ load_yaml_args <- function(file) {
     all_args <- c(all_args, args)
   }
   for (i in 1:length(all_args)) {
-    all_args[i][['hash']] <- create_hash(all_args[i])
+    all_args[[i]][['hash']] <- create_hash(all_args[[i]])
   }
   return(all_args)
 }

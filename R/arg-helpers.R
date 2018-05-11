@@ -13,8 +13,9 @@ finalize_args <- function(args) {
   args[['output']][['terminal']] = 'terminal.txt'
   args[['output']][['error']] = 'error.txt'
   args[['output']][['file']] = 'output.csv'
-  args[['output']][['diagnostics']] = 'diagnostics.csv'
+  args[['output']][['diagnostic_file']] = 'diagnostics.csv'
   args[['output']][['control']] = 'control.yaml'
+  output_files <- c('terminal', 'error', 'file', 'diagnostics', 'control')
 
   if (is.null(args[['target_dir']]))
     args[['target_dir']] <- "fits"
@@ -31,16 +32,16 @@ finalize_args <- function(args) {
     dir.create(file.path(args[['fit_prefix']], 'init'), recursive=TRUE)
 
   putative_prefix = file.path(args[['fit_prefix']], 
-    paste0("chain-", args[['chain']]))
+    paste0("chain-", args[['sample']][['chain']]))
   while (dir.exists(putative_prefix)) {
-    args[['chain']] <- args[['chain']] + 1
+    args[['sample']][['chain']] <- args[['sample']][['chain']] + 1
     putative_prefix = file.path(args[['fit_prefix']], 
-      paste0("chain-", args[['chain']]))
+      paste0("chain-", args[['sample']][['chain']]))
   }
   dir.create(putative_prefix)
 
   args[['output_prefix']] <- putative_prefix
-  for (output in names(args[['output']])) {
+  for (output in output_files) {
     args[['output']][[output]] <- file.path(args[['output_prefix']], 
       args[['output']][[output]])
   }
@@ -49,16 +50,17 @@ finalize_args <- function(args) {
   if (!is.null(data_prefix) && !is.null(args[['data']][['file']])) {
     args[['data']][['file']] <- file.path(data_prefix, args[['data']][['file']])
   }
-  if (!file.exists(args[['data']][['file']])) {
-    msg <- paste0("Data file missing at: ", args[['data']][['file']])
-    stop(msg)
-  } else {
-    file.copy(args[['data']][['file']], args[['fit_prefix']], 'data', 
-              overwrite=TRUE)
+  if (!is.null(args[['data']]) && !is.null(args[['data']][['file']])) {
+    if (!file.exists(args[['data']][['file']])) {
+      msg <- paste0("Data file missing at: ", args[['data']][['file']])
+      stop(msg)
+    } else {
+      file.copy(args[['data']][['file']], args[['fit_prefix']], overwrite=TRUE)
+    }
   }
 
-  init_exists <- is.null(args[['init']])
-  is_init_file <- is.na(as.numeric(args[['init']]))
+  init_exists <- !is.null(args[['init']]) && !is.na(args[['init']])
+  is_init_file <- init_exists && is.na(as.numeric(args[['init']]))
   init_prefix <- args[['init_dir']]
   if (!is.null(init_prefix) && init_exists && is_init_file) {
     args[['init']] <- file.path(init_prefix, args[['init']])
@@ -128,11 +130,32 @@ create_hash <- function(args) {
   model_hash = openssl::sha256(x=file(model_path))
   if (is.null(args[['data']]) || is.null(args[['data']][['file']]))
     data_hash = ''
-  else 
-    data_hash = openssl::sha256(x=file(args[['data']][['file']]))
-  if (!is.null(args[['init']]))
-    init_hash = openssl::sha256(x=file(args[['init']]))
-  else 
+  else {
+    data_file = args[['data']][['file']]
+    if (!is.null(args[['data_dir']])) {
+      data_file = file.path(args[['data_dir']], data_file)
+    }
+    if (file.exists(data_file)) {
+      data_hash = openssl::sha256(x=file(data_file))
+    } else {
+      msg <- paste0("Data file missing: ", data_file)
+      stop(msg)
+    }
+  }
+  if (!is.null(args[['init']]) && !is.na(args[['init']]) && 
+      is.na(as.numeric(args[['init']]))
+  ) {
+    init_file = args[['init']]
+    if (!is.null(args[['init_dir']])) {
+      init_file = file.path(args[['init_dir']], init_file)
+    }
+    if (file.exists(init_file)) {
+      init_hash = openssl::sha256(x=file(args[['init']]))
+    } else {
+      msg <- paste0("Init file missing: ", init_file)
+      stop(msg)
+    }
+  } else 
     init_hash = ''
   full_hash = openssl::sha256(x = paste(project_id_hash, model_hash,
     data_hash, init_hash, sep = ':'))
@@ -147,16 +170,25 @@ create_hash <- function(args) {
 #' @export
 flatten_args <- function(args) {
   args_out <- list()
-  for (arg in args) {
-    n_inits <- length(arg[['init']])
-    n_chains <- arg[['sample']][['n_chains']]
-    n_total <- n_inits * n_chains
-    for (chain in 1:n_total) {
-      arg_append <- arg
-      arg_append[['sample']][['chain']] <- chain
-      arg_append[['init']] <- arg[['init']][(c - 1) %% n_inits + 1]
-      args_out <- c(args_out, arg_append)
-    }
+  if (is.null(args[['init']]) || length(args[['init']]) == 0) {
+    n_inits <- 1
+  } else {
+    n_inits <- length(args[['init']])
+  }
+  if (is.null(args[['sample']]) || is.null(args[['sample']][['num_chains']])) {
+    n_chains <- 1
+  } else {
+    n_chains <- args[['sample']][['num_chains']]
+  }
+  n_total <- n_inits * n_chains
+  if (is.null(args[['sample']])) 
+    args[['sample']] <- list()
+  for (chain in 1:n_total) {
+    arg_append <- args
+    arg_append[['sample']][['chain']] <- chain
+    if (!is.null(args[['init']]))
+      arg_append[['init']] <- args[['init']][(chain - 1) %% n_inits + 1]
+    args_out[[length(args_out) + 1]] <- c(arg_append)
   }
   return(args_out)
 }
