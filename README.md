@@ -3,7 +3,8 @@
 There is an official R interface to Stan (mc-stan.org) and this 
 is *NOT* it.  Stannis uses `git` do download a CmdStan branch, 
 stashes a build of it, and provides some wrappers on `system2` 
-calls to let you use it directly from R.
+calls to let you use it directly from R.  It also has some basic
+facilities for reading output an manipulating it.
 
 ## Where does CmdStan go?
 
@@ -116,6 +117,12 @@ your input and you can't use it.  This package will often work
 mostly because CmdStan streams stuff in a reliable if clunky format
 and has robust makefiles.  Yey basics.  
 
+## Dependencies
+
+You need `git` installed, you need an up-to-date-enough git/make so
+they work reliably with the `-C` option.  This package has some
+R dependencies (magrittr, dplyr) but I'll pull those out at some
+point as they're not really necessary.  
 
 
 
