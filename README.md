@@ -5,7 +5,7 @@ is **NOT** it.  Stannis uses `git` do download a CmdStan branch,
 stashes a build of it, and provides some wrappers on `system2` 
 calls to let you use it directly from R.  It also has some basic
 facilities for reading output an manipulating it.  If you have
-feedback please let me know, I would like to make this a solid
+feedback please let me know (`k@fawkes.io`), I would like to make this a solid
 package that complements `rstan` in function but it will never 
 have the slick look `rstan` is going for.
 
