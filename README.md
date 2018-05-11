@@ -1,10 +1,30 @@
 # Stannis
 
 There is an official R interface to Stan (mc-stan.org) and this 
-is *NOT* it.  Stannis uses `git` do download a CmdStan branch, 
+is **NOT** it.  Stannis uses `git` do download a CmdStan branch, 
 stashes a build of it, and provides some wrappers on `system2` 
 calls to let you use it directly from R.  It also has some basic
-facilities for reading output an manipulating it.
+facilities for reading output an manipulating it.  If you have
+feedback please let me know, I would like to make this a solid
+package that complements `rstan` in function but it will never 
+have the slick look `rstan` is going for.
+
+## Quickstart
+
+This needs `git` and Stannis installed, it runs an example:
+
+```
+target_directory = '<where-ever-you-put-stuff>'
+setup_runs(target_director)
+setwd(target_directory)
+library(stannis)
+run_cmdstan(file = 'fits.yaml')
+```
+
+Check out the output structures in `output` subdirectory, 
+check out the `fits.yaml` file to get an idea of how to 
+drive.  Then read some more below.  Every single function should
+have documentation.
 
 ## Where does CmdStan go?
 
