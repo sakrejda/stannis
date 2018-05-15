@@ -5,7 +5,7 @@
 #' @return a processed and merged list of files.
 #' @export 
 read_file_set <- function(root='.', pattern) {
-  files <- dir(path=root, pattern=pattern, full.names=TRUE)
+  files <- dir(path=root, pattern=pattern, full.names=TRUE, recursive=TRUE)
   n_chains <- length(files)
   metadata <- lapply(files, read_stan_metadata)
   ids <- sapply(metadata, `[[`, 'chain_id')
@@ -48,10 +48,9 @@ merge_chains <- function(set) {
 #' @export
 trim_warmup <- function(set) {
   for (i in seq_along(set[['data']])) {
-    set[['data']][[i]] <- set[['data']][[i]][
-      set[['grouping']][[i]][['post-warmup']]]
-    set[['grouping']][[i]] <- set[['grouping']][[i]][
-      set[['grouping']][[i]][['post-warmup']]]
+    idx <- set[['grouping']][[i]][['post-warmup']]
+    set[['data']][[i]] <- set[['data']][[i]][idx,]
+    set[['grouping']][[i]] <- set[['grouping']][[i]][idx,]
   }
   return(set)
 }

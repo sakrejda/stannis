@@ -12,11 +12,12 @@ transformed data {
 }
 
 parameters {
-  real<lower=0, upper=1> theta;
+  real<lower=0, upper=1> theta[2];
 }
 
 model {
-  y ~ binomial(N, theta);
+  y ~ binomial(N, theta[1]);
+  theta[2] ~ beta(5, 5);
 }
 
 

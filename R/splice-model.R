@@ -13,9 +13,9 @@ tag_find <- function(text) text[grepl(pattern='// \\[\\[.*\\]\\]', x=text) %>% w
 #' @export
 tag_pull <- function(text)  gsub(pattern='// \\[\\[(.*)\\]\\]', replacement = '\\1', x=text)
 
-#' File matching a tag
+#' File matching a tag.  Replaces '::' separator with '-' separator.
 #'
-#' @param tag
+#' @param tag text descriptor of file name.
 #' @return implied file name
 #' @export
 tag_file <- function(tag) {
@@ -69,8 +69,9 @@ substitutions <- function(model = NULL, search = NULL, output = NULL) {
   if (is.null(output)) {
     output_file = gsub(pattern='\\.[^\\.]*$', replacement='.stan', x=model)
   } else {
-    output_file =output
+    output_file = output
   }
   writeLines(model_text, con=output_file)
+  return(output_file)
 }  
 

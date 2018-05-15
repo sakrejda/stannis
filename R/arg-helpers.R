@@ -72,27 +72,35 @@ finalize_args <- function(args) {
     file.copy(args[['init']], args[['fit_prefix']], overwrite=TRUE)
   }
   yaml::write_yaml(args, file = file.path(args[['output_prefix']], "finalized.yaml"))
+  register_run(args)
   return(args)
 }
 
 #' Based on an argument tree ('args' object) find a model
-#' and return the path.
+#' and return the path. If the model file (.stan file) is not
+#' found, check for the presence of a partial model file (.model file)
+#' and splice it with components from args[['model_dir']]
 #'
 #' @param args arg-tree object (list).
 #' @return path to object's model file.
 #' @export
 find_model <- function(args) {
   search_path = args[['model_dir']]
-  file_pattern = paste0('^', args[['model_name']], '\\.stan$')
-  path = dir(path = search_path, pattern = file_pattern, full.names=TRUE)
-  if (length(path) == 1)
-    return(normalizePath(path))
-  else {
-    msg <- paste0("Model not found. \n", 
-      "searched in: ", search_path,
-      "pattern: ", file_pattern)
-    stop(msg)
+  full_file_pattern = paste0('^', args[['model_name']], '\\.stan$')
+  part_file_pattern = paste0('^', args[['model_name']], '\\.model$')
+  full_file_path = dir(path = search_path, pattern = full_file_pattern, full.names=TRUE)
+  if (length(full_file_path) == 0) {
+    part_file_path = dir(path = search_path, pattern = part_file_pattern, full.names=TRUE)
+    if (length(part_file_path) == 0) {
+      msg <- paste0("Model not found. \n", 
+        "searched in: ", search_path,
+        "pattern: ", file_pattern)
+      stop(msg)
+    } 
+    full_file_path = substitutions(model = part_file_path, search = search_path,
+      output = file.path(tempdir(), paste(args[['model_name']], '.stan')))
   }
+  return(normalizePath(full_file_path))
 }
 
 #' return project id from an argument tree ('args' object).

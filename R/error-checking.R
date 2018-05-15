@@ -1,3 +1,10 @@
+
+#' Return an NA or the value
+#'
+#' @param x a list element, could be NULL
+#' @return NA or the item
+not_null <- function(x) if (is.null(x)) return(NA) else return(x)
+
 #' Check whether list elements have different lenghts.
 #'
 #' @param x item to check.
