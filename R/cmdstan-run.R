@@ -46,6 +46,8 @@ construct_cmdline <- function(...) {
 #' @export
 run_model_cmd <- function(...) {
   args_in <- finalize_args(list(...))
+  if (!is.null(args[['existing_output']]) && isTRUE(args[['existing_output']]))
+    return(args_in)
   cmd <- do.call(what = construct_cmdline, args = args_in) %>% 
     strsplit('[ ]+') %>% `[[`(1)
   binary <- cmd[1]

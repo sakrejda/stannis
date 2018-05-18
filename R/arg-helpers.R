@@ -15,7 +15,7 @@ finalize_args <- function(args) {
   args[['output']][['file']] = 'output.csv'
   args[['output']][['diagnostic_file']] = 'diagnostics.csv'
   args[['output']][['control']] = 'control.yaml'
-  output_files <- c('terminal', 'error', 'file', 'diagnostics', 'control')
+  output_files <- c('terminal', 'error', 'file', 'diagnostic_file', 'control')
 
   if (is.null(args[['target_dir']]))
     args[['target_dir']] <- "fits"
@@ -33,12 +33,16 @@ finalize_args <- function(args) {
 
   putative_prefix = file.path(args[['fit_prefix']], 
     paste0("chain-", args[['sample']][['chain']]))
-  while (dir.exists(putative_prefix)) {
-    args[['sample']][['chain']] <- args[['sample']][['chain']] + 1
-    putative_prefix = file.path(args[['fit_prefix']], 
-      paste0("chain-", args[['sample']][['chain']]))
+#  while (dir.exists(putative_prefix)) {
+#    args[['sample']][['chain']] <- args[['sample']][['chain']] + 1
+#    putative_prefix = file.path(args[['fit_prefix']], 
+#      paste0("chain-", args[['sample']][['chain']]))
+#  }
+  if (dir.exists(putative_prefix)) {
+    args[['existing_output']] = TRUE
+  } else {
+    dir.create(putative_prefix)
   }
-  dir.create(putative_prefix)
 
   args[['output_prefix']] <- putative_prefix
   for (output in output_files) {
