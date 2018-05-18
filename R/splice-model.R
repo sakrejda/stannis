@@ -24,18 +24,6 @@ tag_file <- function(tag) {
   return(files)
 }
 
-#' Return first candidate file in search directories
-#'
-#' @param search directories to look in (comma-separated string).
-#' @param name file name to search for.
-#' @return first candidate matching name.
-#' @export
-find_file <- function(search, name) {
-  search <- strsplit(search, split=',', fixed=TRUE) %>% unlist
-  clean_search <- gsub(pattern='[ \t]', replacement='', x=search)
-  candidates <- sapply(clean_search, dir, pattern=name, full.names=TRUE)
-  return(candidates[1])
-}
 
 
 #' Substitute tags for the referenced file content. 
