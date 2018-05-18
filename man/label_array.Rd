@@ -13,7 +13,7 @@ name is the dimension name, each entry is a vector
 with labels or each entry of the dimension index.}
 
 \item{array, }{Stan-dimension (+1 for iteration) array of 
-parameter samples}
+parameter samples.  First dimension is the iteration.}
 }
 \description{
 Label parameter array

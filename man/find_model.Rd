@@ -3,7 +3,9 @@
 \name{find_model}
 \alias{find_model}
 \title{Based on an argument tree ('args' object) find a model
-and return the path.}
+and return the path. If the model file (.stan file) is not
+found, check for the presence of a partial model file (.model file)
+and splice it with components from args[['model_dir']]}
 \usage{
 find_model(args)
 }
@@ -15,5 +17,7 @@ path to object's model file.
 }
 \description{
 Based on an argument tree ('args' object) find a model
-and return the path.
+and return the path. If the model file (.stan file) is not
+found, check for the presence of a partial model file (.model file)
+and splice it with components from args[['model_dir']]
 }

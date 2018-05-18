@@ -2,13 +2,16 @@
 % Please edit documentation in R/splice-model.R
 \name{tag_file}
 \alias{tag_file}
-\title{File matching a tag}
+\title{File matching a tag.  Replaces '::' separator with '-' separator.}
 \usage{
 tag_file(tag)
+}
+\arguments{
+\item{tag}{text descriptor of file name.}
 }
 \value{
 implied file name
 }
 \description{
-File matching a tag
+File matching a tag.  Replaces '::' separator with '-' separator.
 }

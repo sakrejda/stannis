@@ -46,20 +46,21 @@ construct_cmdline <- function(...) {
 #' @export
 run_model_cmd <- function(...) {
   args_in <- finalize_args(list(...))
-  if (isTRUE(args_in[['existing_output']]))
-    return(args_in)
   cmd <- do.call(what = construct_cmdline, args = args_in) %>% 
     strsplit('[ ]+') %>% `[[`(1)
+  args_in[['command']] <- cmd
   binary <- cmd[1]
   args <- cmd[2:length(cmd)]
   out <- args_in[['output']][['terminal']]
   err <- args_in[['output']][['error']]
-  if ('wait' %in% names(args_in) && args_in[['wait']] == TRUE) 
+  if (isTRUE(args_in[['wait']]))
     wait = TRUE
   else
     wait = FALSE
-  system2(command=binary, args=args, stdout=out, stderr=err, wait=wait)
-  args_in[['command']] <- cmd
+  if (isTRUE(args_in[['existing_output']]))
+    return(args_in)
+  else
+    system2(command=binary, args=args, stdout=out, stderr=err, wait=wait)
   return(args_in)
 }
 
@@ -73,7 +74,8 @@ run_cmdstan <- function(file, cores = getOption("cl.cores", 1)) {
   args <- load_yaml_args(file) 
   if (is.null(cores) || is.na(cores) || cores == 1) {
     for (i in 1:length(args)) {
-      args[[i]] <- do.call(what = run_model_cmd, args = args[[i]])
+      args[[i]] <- do.call(what = run_model_cmd, 
+        args = c(args[[i]], list(wait = TRUE)))
     }
   } else {    
     cl <- parallel::makeCluster(cores)
