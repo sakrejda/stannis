@@ -8,9 +8,9 @@ Maintainer: Krzysztof Sakrejda <k@fawkes.io>
 Description: Work with CmdStan from R, using standard R tools. Run models specified in .yaml files, store output in standard hierarchy, post-process output to create data frame or arrays, merge chains, pick out specific parameters from larger model outputs.  Planned: faster .csv reader, run diagnostics directly. 
 License: GPL-2
 Imports:
-    magrittr
-Depends:
-    dplyr, yaml
+    magrittr,
+    dplyr,
+    yaml
 Suggests:
     rappdirs
 LinkingTo: Rcpp
