@@ -33,7 +33,7 @@ split_data_by_parameter <- function(data) {
   split_column_idx = get_split_column_indexes(cn)
   o <- list()
   for (name in names(split_column_idx)) {
-    o[[name]] <- data[,split_column_idx[[i]], drop=FALSE]
+    o[[name]] <- data[,split_column_idx[[name]], drop=FALSE]
   }
   return(o)
 }

@@ -5,7 +5,7 @@
 #' @return list of arrays, one per chain in set 
 #' @export
 create_array_set <- function(set) {
-  for (i in 1:set[['n_chains']]) {
+  for (i in 1:length(set[['data']])) {
     set[['data']][[i]] <- generate_parameter_arrays(set[['data']][[i]]) 
   }
   return(set)

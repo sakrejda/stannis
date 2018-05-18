@@ -94,11 +94,11 @@ find_model <- function(args) {
     if (length(part_file_path) == 0) {
       msg <- paste0("Model not found. \n", 
         "searched in: ", search_path,
-        "pattern: ", file_pattern)
+        "pattern: ", part_file_path)
       stop(msg)
     } 
     full_file_path = substitutions(model = part_file_path, search = search_path,
-      output = file.path(tempdir(), paste(args[['model_name']], '.stan')))
+      output = file.path(tempdir(), paste0(args[['model_name']], '.stan')))
   }
   return(normalizePath(full_file_path))
 }
