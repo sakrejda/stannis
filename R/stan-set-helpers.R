@@ -55,4 +55,40 @@ trim_warmup <- function(set) {
   return(set)
 }
 
+#' Scatter set
+#' 
+#' @param set set to write out.
+#' @param target target directory to write to.
+#' @return target directory 
+#' @export
+scatter <- function(set, target) {
+  saveRDS(set[['metadata']], file = file.path(target, 'metadata.rds'))
+  if (isTRUE(all(names(set[['data']]) == 'merged'))) {
+    merged <- TRUE
+  } else {
+    merged <- FALSE
+  }
+  for (i in 1:length(set[['data']])) { 
+    if (is.data.frame(set[['data']][[i]])) {
+      if (merged) 
+        saveRDS(set[['data']][[i]], file = file.path(target, paste0('samples-df.rds')))
+      else
+        saveRDS(set[['data']][[i]], file = file.path(target, paste0('samples-chain-', i, '-df.rds')))
+    } else {
+      parameter_names = names(set[['data']][[i]])
+      for (parameter in parameter_names) {
+        if (merged) 
+          saveRDS(set[['data']][[i]][[parameter]], file = file.path(target, 
+            paste0('parameter-', parameter, '.rds')))
+        else
+          saveRDS(set[['data']][[i]][[parameter]], file = file.path(target, 
+            paste0('parameter-', parameter, '-chain-', i, '.rds')))
+      }
+    }
+  }
+  return(target)
+}
+
+
+
 
