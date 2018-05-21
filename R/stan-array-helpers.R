@@ -51,13 +51,17 @@ label_array <- function(A, labels) {
 #' @export
 unroll_array <- function(A, labels = NULL) {
   if (!is.null(labels))
-    A = label_array(A)
+    A = label_array(A, labels = labels)
   n_dim <- dim(A) %>% length
   iterations = 1:dim(A)[[1]]
   labels = dimnames(A)[2:n_dim]
-  lf <- matrix(data = A, ncol = dim(A)[1], byrow=TRUE)
+  lf <- matrix(data = A, ncol = dim(A)[1])
   dimnames(lf) <- list(group = 1:nrow(lf), iteration = iterations)
-  grouping <- do.call(what = expand.grid, args = labels)
+  if (!is.null(labels)) {
+    grouping <- do.call(what = expand.grid, args = labels[2:n_dim])
+  } else {
+    grouping <- do.call(what = expand.grid, args = dimnames(lf)[1:(n_dim-1)])
+  }
   return(list(values = lf, grouping = grouping))
 }
 
@@ -74,4 +78,5 @@ unroll_array_to_df <- function(A, labels = NULL) {
   lf <- data.frame(lf[['grouping']], lf[['values']], check.names = FALSE, stringsAsFactors=FALSE)
   return(lf) 
 }
+
 
