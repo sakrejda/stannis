@@ -5,7 +5,7 @@
 #' @return list of arrays, one per chain in set 
 #' @export
 create_array_set <- function(set) {
-  if (!set[['merged']]) {
+  if (!isTRUE(set[['merged']])) {
     for (i in 1:length(set[['data']])) {
       set[['data']][[i]] <- generate_parameter_arrays(set[['data']][[i]]) 
     }
@@ -21,7 +21,7 @@ create_array_set <- function(set) {
 #' @return list of arrays, one per chain in set 
 #' @export
 extract_array <- function(set, parameter) {
-  if (!set[['merged']]) {
+  if (!isTRUE(set[['merged']])) {
     o <- list()
     for (i in seq_along(set[['data']])) {
       wh = colnames(set[['data']][[i]]) %>% get_split_column_indexes()
