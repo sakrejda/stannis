@@ -5,8 +5,12 @@
 #' @return list of arrays, one per chain in set 
 #' @export
 create_array_set <- function(set) {
-  for (i in 1:length(set[['data']])) {
-    set[['data']][[i]] <- generate_parameter_arrays(set[['data']][[i]]) 
+  if (!set[['merged']]) {
+    for (i in 1:length(set[['data']])) {
+      set[['data']][[i]] <- generate_parameter_arrays(set[['data']][[i]]) 
+    }
+  } else {
+    set[['data']] <- generate_parameter_arrays(set[['data']])
   }
   return(set)
 }
@@ -17,11 +21,17 @@ create_array_set <- function(set) {
 #' @return list of arrays, one per chain in set 
 #' @export
 extract_array <- function(set, parameter) {
-  o <- list()
-  for (i in seq_along(set[['data']])) {
-    wh = colnames(set[['data']][[i]]) %>% get_split_column_indexes()
-    sub_data <- set[['data']][[i]][,wh[[parameter]], drop=FALSE]
-    o[[i]] <- generate_parameter_array(sub_data)
+  if (!set[['merged']]) {
+    o <- list()
+    for (i in seq_along(set[['data']])) {
+      wh = colnames(set[['data']][[i]]) %>% get_split_column_indexes()
+      sub_data <- set[['data']][[i]][,wh[[parameter]], drop=FALSE]
+      o[[i]] <- generate_parameter_array(sub_data)
+    }
+  } else {
+    wh = colnames(set[['data']]) %>% get_split_indexes()
+    sub_data <- set[['data']][,wh[[parameter]], drop=FALSE]
+    o <- generate_parameter_array(sub_data)
   }
   return(o)
 }
@@ -36,7 +46,11 @@ extract_array <- function(set, parameter) {
 #'        with labels or each entry of the dimension index.
 #' @export
 label_array <- function(A, labels) { 
-  dimnames(A) <- labels 
+  if (!is.null(labels)) {
+    dimnames(A) = labels
+  } else {
+    dimnames(A) = lapply(dim(A), function(x) 1:x)
+  } 
   return(A)
 }
 
@@ -44,25 +58,21 @@ label_array <- function(A, labels) {
 #'
 #' @param array array of samples extracted from sample file set
 #' @param labels list with a named elements for each array margin
-#'        and each element lists the names for that margin.
+#'        and each element lists the names for that margin.  The
+#'        first list element must be for the iterations margin.
 #' @return list with a component for a matrix of values (one group
 #'         per row, one iteration per column), and a data.frame
 #'         with string labels for each row.
 #' @export
 unroll_array <- function(A, labels = NULL) {
-  if (!is.null(labels))
-    A = label_array(A, labels = labels)
+  A = label_array(A, labels = labels)
   n_dim <- dim(A) %>% length
-  iterations = 1:dim(A)[[1]]
+  lf <- matrix(data = A, ncol = dim(A)[1], byrow=TRUE)
+  dimnames(lf) <- list(group = 1:nrow(lf), iteration = 1:ncol(lf))
   labels = dimnames(A)[2:n_dim]
-  lf <- matrix(data = A, ncol = dim(A)[1])
-  dimnames(lf) <- list(group = 1:nrow(lf), iteration = iterations)
-  if (!is.null(labels)) {
-    grouping <- do.call(what = expand.grid, args = labels[2:n_dim])
-  } else {
-    grouping <- do.call(what = expand.grid, args = dimnames(lf)[1:(n_dim-1)])
-  }
-  return(list(values = lf, grouping = grouping))
+  grouping <- do.call(what = expand.grid, 
+    args = c(labels, list(stringsAsFactors=FALSE)))
+  return(list(values = lf, grouping = grouping))  ## FIXME: Future proper type.
 }
 
 #' Array to long-form, combined into one data frame.

@@ -27,19 +27,6 @@ read_file_set <- function(root='.', pattern) {
               grouping = grouping))
 }
 
-#' Merge chains
-#'
-#' @param set object created by `read_stan_set`
-#' @return set object with only one merged chain.
-#' @export
-merge_chains <- function(set) {
-  o <- list(n_chains = set[['n_chains']],
-    metadata = set[['metadata']],
-    data = list(merged = do.call(rbind, set[['data']])),
-    grouping = list(merged = do.call(rbind, set[['grouping']]))
-  )
-  return(o)
-}
 
 #' Trim warmup
 #'
@@ -55,6 +42,28 @@ trim_warmup <- function(set) {
   return(set)
 }
 
+#' Merge chains
+#'
+#' @param set object created by `read_stan_set`
+#' @return set object with only one merged chain.
+#' @export
+merge_chains <- function(set) {
+  samples = set[['data']]
+  cn = names(samples[[1]])
+  for (c in 1:length(samples)) 
+    if (any(cn != names(samples[[c]])))
+      stop("Column names do not match within set. Not merging.")
+  o <- list(
+    n_chains = set[['n_chains']],
+    metadata = set[['metadata']],
+    data = do.call(rbind, set[['data']]),
+    grouping = do.call(rbind, set[['grouping']])
+  )
+  o[['merged']] <- TRUE
+  colnames(o$data) = cn
+  return(o)
+}
+
 #' Scatter set
 #' 
 #' @param set set to write out.
@@ -63,26 +72,26 @@ trim_warmup <- function(set) {
 #' @export
 scatter <- function(set, target) {
   saveRDS(set[['metadata']], file = file.path(target, 'metadata.rds'))
-  if (isTRUE(all(names(set[['data']]) == 'merged'))) {
-    merged <- TRUE
-  } else {
-    merged <- FALSE
-  }
-  for (i in 1:length(set[['data']])) { 
-    if (is.data.frame(set[['data']][[i]])) {
-      if (merged) 
-        saveRDS(set[['data']][[i]], file = file.path(target, paste0('samples-df.rds')))
-      else
-        saveRDS(set[['data']][[i]], file = file.path(target, paste0('samples-chain-', i, '-df.rds')))
-    } else {
-      parameter_names = names(set[['data']][[i]])
+  if (set[['merged']]) {
+    if (is.data.frame(set[['data']]))
+      saveRDS(set[['data']], file = file.path(target, paste0('samples-df.rds')))
+    else {
+      parameter_names = names(set[['data']])
       for (parameter in parameter_names) {
-        if (merged) 
-          saveRDS(set[['data']][[i]][[parameter]], file = file.path(target, 
-            paste0('parameter-', parameter, '.rds')))
-        else
+        saveRDS(set[['data']][[parameter]], file = file.path(target, 
+          paste0('parameter-', parameter, '.rds')))
+      }
+    }
+  } else { 
+    for (i in 1:length(set[['data']])) { 
+      if (is.data.frame(set[['data']][[i]])) {
+        saveRDS(set[['data']][[i]], file = file.path(target, paste0('samples-chain-', i, '-df.rds')))
+      } else {
+        parameter_names = names(set[['data']][[i]])
+        for (parameter in parameter_names) {
           saveRDS(set[['data']][[i]][[parameter]], file = file.path(target, 
             paste0('parameter-', parameter, '-chain-', i, '.rds')))
+        }
       }
     }
   }
