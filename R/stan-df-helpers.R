@@ -29,6 +29,7 @@ generate_parameter_array <- function(data) {
 #'         entry (data.frame) per parameter
 #' @export
 split_data_by_parameter <- function(data) {
+  is_named_data_frame(data)
   cn = names(data)
   split_column_idx = get_split_column_indexes(cn)
   o <- list()
@@ -45,6 +46,7 @@ split_data_by_parameter <- function(data) {
 #' @return list of arrays (element per named parameter).
 #' @export
 generate_parameter_arrays <- function(data) {
+  is_named_data_frame(data)
   data <- split_data_by_parameter(data)
   d <- list()
   for (name in names(data))

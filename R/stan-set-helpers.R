@@ -48,6 +48,9 @@ trim_warmup <- function(set) {
 #' @return set object with only one merged chain.
 #' @export
 merge_chains <- function(set) {
+  if (!is_named_data_frame(set)) {
+    stop("Merging only supported on non-array sets.")
+  }
   samples = set[['data']]
   cn = names(samples[[1]])
   for (c in 1:length(samples)) 

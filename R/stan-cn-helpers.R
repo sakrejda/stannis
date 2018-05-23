@@ -4,9 +4,9 @@
 #' @return unique parameter names.
 #' @export
 extract_parameter_names <- function(x) {
-       o <- strsplit(x=x, split='\\.') %>% lapply(`[`,1) %>% 
-         unique %>% unlist
-       return(o)
+  o <- strsplit(x=x, split='\\.') %>% lapply(`[`,1) %>% 
+    unique %>% unlist
+  return(o)
 }
 
 #' Convert parameter name and index into Stan-style column
@@ -60,8 +60,8 @@ get_split_column_names <- function(cn) {
 #' @param x vector of column names for a given parameter.
 #' @return an un-named vector of dimensions.
 #' @export
-generate_dims <- function(x) {
-	o <- strsplit(x=x, split='\\.') %>% lapply(`[`,-1)
+generate_dims <- function(cn) {
+	o <- strsplit(x=cn, split='\\.') %>% lapply(`[`,-1)
   if (is_ragged_list(o))
     stop("Parameter name has inconsistent dimensions.")
   if (is_empty_list(o)) {

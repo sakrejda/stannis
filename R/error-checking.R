@@ -47,3 +47,12 @@ is_directory <- function(p) {
   return(o)
 }
 
+#' Check if input is a data frame with column names.
+#'
+#' @param x input
+#' @return TRUE iff conditions are met
+is_named_data_frame <- function(x) {
+  a <- isTRUE(is.data.frame(x))
+  b <- isTRUE(!is.null(colnames(x)))
+  return(a & b)
+}
