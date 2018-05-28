@@ -12,6 +12,7 @@ create_array_set <- function(set) {
   } else {
     set[['data']] <- generate_parameter_arrays(set[['data']])
   }
+  set[['is_array']] <- TRUE
   return(set)
 }
 

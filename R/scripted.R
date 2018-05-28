@@ -154,7 +154,7 @@ scripted <- function(file, log_file = tempfile(), debug=FALSE) {
 
     o <- NULL
     log("Calling script-level main function.")
-    o <- main(source_dir = job[['source_dir']], parameters = job[['parameters']])
+    o <- main(job)
 
     if (!is.null(o)) {
       log("Objects in return are: ")
