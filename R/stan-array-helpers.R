@@ -78,5 +78,26 @@ label = function(A, labels = NULL) {
   return(list(values = lf, grouping = grouping))  ## FIXME: Future proper type.
 }
 
+#' Summarize iterations to estimates!
+#'
+#' @param x list from with named elements 'values' and 'grouping'.  The 'values' 
+#'          element is a matrix (n-groups by n-iterations) with sampled
+#'          parameter values.  The 'grouping' element is a data.frame with 
+#'          n-groups rows and one column per index.
+#' @param f function to use to aggregate (applied row-wise)
+summarize = function(x, f, ...) {
+  x[['values']] <- apply(x, 1, f, ...)
+  return(x)
+}
+
+#' Standard summary function.
+#'
+#' @param x per-iteration parameter values.
+#' @return 
+std_estimates <- function(x) {
+  x = c(lb = quantile(x, probs=0.025), estimate = mean(x), ub = quantile(x, probs=0.975))
+  attr(x, 'summaries') <- c('2.5%', 'mean', '97.5%')
+  return(x)
+}
 
 
