@@ -15,6 +15,8 @@ get_comment_lines <- function(lines) {
 #' @export
 get_control_lines <- function(lines) {
   lines <- get_comment_lines(lines)
+  if (length(lines) == 0)
+    stop(paste0("No comment lines found."))
 	lines <- lines[grepl(pattern='=', x=lines, fixed=TRUE)] %>% 
     lapply(trim_whitespace) %>% unlist %>% process_key_value(split='=')
 #  lines <- gsub(pattern='(Default)', replacement='', x=lines, fixed=TRUE)
@@ -49,6 +51,8 @@ get_imm_diagonal <- function(lines) {
 #' @return vector of all column names, with whitespace trimmed.
 get_column_names <- function(lines) {
   idx <- which(grepl(pattern='^lp__,', x=lines))
+  if (length(idx) == 0) 
+    stop("Column names not found, samples not available in file.\n")
 	column_names <- strsplit(x=lines[idx], split=',', fixed=TRUE)[[1]]
 	column_names <- trim_whitespace(column_names)
 	return(column_names)

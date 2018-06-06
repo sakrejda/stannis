@@ -6,25 +6,30 @@
 #' @export 
 read_file_set <- function(root='.', pattern) {
   files <- dir(path=root, pattern=pattern, full.names=TRUE, recursive=TRUE)
-  n_chains <- length(files)
-  metadata <- lapply(files, read_stan_metadata)
-  ids <- sapply(metadata, `[[`, 'chain_id')
-  data <- lapply(files, function(f) {
-    d <- read_stan_data(f)
-    d[['iteration']] <- 1:nrow(d)
-    return(d)
+  if (length(files) == 0)
+    stop(paste0("No files matching the pattern were found at root: ", root, "\n"))
+  attempt <- try({
+    n_chains <- length(files)
+    metadata <- lapply(files, read_stan_metadata)
+    ids <- sapply(metadata, `[[`, 'chain_id')
+    data <- lapply(files, function(f) {
+      d <- read_stan_data(f)
+      d[['iteration']] <- 1:nrow(d)
+      return(d)
+    })
+    grouping <- list()
+    for ( i in seq_along(ids)) {
+      grouping[[i]] <- data.frame(iteration = 1:nrow(data[[i]]))
+      grouping[[i]][['chain']] <- rep(i, nrow(data[[i]]))
+      grouping[[i]][['warmup']] <- 
+        data[[i]][['iteration']] <= metadata[[i]][['num_warmup']]
+      grouping[[i]][['post-warmup']] <- 
+        data[[i]][['iteration']] > metadata[[i]][['num_warmup']]
+    }
+    return(list(metadata=metadata, n_chains = n_chains, data=data,
+                grouping = grouping))
   })
-  grouping <- list()
-  for ( i in seq_along(ids)) {
-    grouping[[i]] <- data.frame(iteration = 1:nrow(data[[i]]))
-    grouping[[i]][['chain']] <- rep(i, nrow(data[[i]]))
-    grouping[[i]][['warmup']] <- 
-      data[[i]][['iteration']] <= metadata[[i]][['num_warmup']]
-    grouping[[i]][['post-warmup']] <- 
-      data[[i]][['iteration']] > metadata[[i]][['num_warmup']]
-  }
-  return(list(metadata=metadata, n_chains = n_chains, data=data,
-              grouping = grouping))
+  return(list())
 }
 
 

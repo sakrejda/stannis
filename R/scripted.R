@@ -93,6 +93,8 @@ save_output <- function(job, output, logger) {
   output_names <- get_expectations(job, logger)
   for (i in 1:length(output_names)) {
     output_path <- file.path(target_dir, output_files[i])
+    if (file.exists(output_path))
+      next
     logger("Output extension: ", get_ext(output_path))
     if (get_ext(output_path) == 'rds') {
       saveRDS(output[[output_names[i]]], output_path)

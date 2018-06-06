@@ -5,7 +5,7 @@
 \title{Create a dimlist out of a character vector of Stan-style column
 names.}
 \usage{
-generate_dims(x)
+generate_dims(cn)
 }
 \arguments{
 \item{x}{vector of column names for a given parameter.}

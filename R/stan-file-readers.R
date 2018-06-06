@@ -17,6 +17,8 @@ read_stan_data <- function(file) {
 #' @export
 read_stan_metadata <- function(file) {
   lines <- readLines(file)
+  if (length(lines) == 0) 
+    stop(paste0("File '", file, "' found to have no text."))
   control <- get_control_lines(lines)
   o <- list(
     stan_version = get_stan_version(control),
