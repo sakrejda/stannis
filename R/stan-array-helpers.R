@@ -85,17 +85,23 @@ label = function(A, labels = NULL) {
 #'          parameter values.  The 'grouping' element is a data.frame with 
 #'          n-groups rows and one column per index.
 #' @param f function to use to aggregate (applied row-wise)
+#' @return data frame (further merging of estimates is dissalowed due to
+#'         "transform then summarize" pattern.
+#' @export
 summarize = function(x, f, ...) {
-  x[['values']] <- apply(x, 1, f, ...)
+  x[['values']] <- apply(x[['values']], 1, f, ...) %>% t
+  x <- data.frame(x[['grouping']], x[['values']], check.names=FALSE)
   return(x)
 }
 
 #' Standard summary function.
 #'
 #' @param x per-iteration parameter values.
-#' @return 
+#' @return per-estimate summary.
+#' @export 
 std_estimates <- function(x) {
-  x = c(lb = quantile(x, probs=0.025), estimate = mean(x), ub = quantile(x, probs=0.975))
+  x = c(quantile(x, probs=0.025), mean(x), quantile(x, probs=0.975))
+  names(x) <- c('lb', 'estimate', 'ub')
   attr(x, 'summaries') <- c('2.5%', 'mean', '97.5%')
   return(x)
 }
