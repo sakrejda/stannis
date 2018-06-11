@@ -10,7 +10,8 @@ License: GPL-3
 Imports:
     magrittr,
     dplyr,
-    yaml
+    yaml,
+    Rcpp
 Suggests:
     rappdirs
 LinkingTo: Rcpp

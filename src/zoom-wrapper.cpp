@@ -1,4 +1,6 @@
 #include <fstream>
+#include <cerrno>
+#include <system_error>
 
 #include <zoom.cpp>
 #include <Rcpp.h>
@@ -13,9 +15,8 @@ Rcpp::List read_cmdstan_csv(Rcpp::StringVector file) {
   header_t header;
   parameter_t parameters;
   std::ifstream f(file[0]);
-  Rcpp::Rcout << f.fail() << std::endl;
-  Rcpp::Rcout << f.bad() << std::endl;
-  Rcpp::Rcout << f.good() << std::endl;
+  if(f.fail())
+    throw std::system_error(EBADF, std::system_category(), "Failed to open file.");
   std::tie(header, parameters) = read_samples(f);
   return Rcpp::List::create(
     Rcpp::Named("n_col") = std::get<0>(header),

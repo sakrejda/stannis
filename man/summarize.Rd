@@ -15,7 +15,8 @@ n-groups rows and one column per index.}
 \item{f}{function to use to aggregate (applied row-wise)}
 }
 \value{
-same list but with iteration columns summarized to estimates.
+data frame (further merging of estimates is dissalowed due to
+        "transform then summarize" pattern.
 }
 \description{
 Summarize iterations to estimates!
