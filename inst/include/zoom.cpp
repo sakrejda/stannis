@@ -7,11 +7,19 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <numeric>
 
-typedef std::tuple<int, int, std::vector<std::string>, std::vector<int>, std::vector<std::vector<int>>, std::vector<std::vector<int>>> header_t;
-typedef std::vector<double> mm_t;
-typedef std::vector<std::vector<double>> parameter_t;
+#include <zoom-t.hpp>
+#include <zoom-helpers.cpp>
 
+/* Helper function that takes iterators to a CmdStan .csv format 
+ * column and adjusts the vector of dimensions to be consistent
+ * with the name (usually upping the dimension sizes.
+ *
+ * @param head beginning of column name string
+ * @param end one-past-end of column name string
+ * @rparam dim vector of dimension sizes
+ */
 void modify_dimensions(std::string::iterator head, std::string::iterator end, std::vector<int>& dim) {
   int i = 0;
   std::string::iterator tail;;
@@ -21,6 +29,13 @@ void modify_dimensions(std::string::iterator head, std::string::iterator end, st
   }
 }
 
+/* Handle header lines only.  Calculate the number of columns,
+ * parameters, names, and structure all in one pass.
+ *
+ * @param line std::string& representing the header
+ * @return header_t tuple with number of column, parameters, names and
+ *                  dimensions/index to columns.
+ */
 header_t read_header(std::string& line) {
   int n_col = 0;
   int n_parameters = 0;
@@ -61,36 +76,13 @@ header_t read_header(std::string& line) {
   return std::make_tuple(n_col, n_parameters, names, n_dim, dimensions, index);
 }
 
-std::string header_summary(header_t& h) {
-  int n_col = 0;
-  int n_parameters = 0;
-  std::vector<std::string> names;
-  std::vector<int> n_dim;
-  std::vector<std::vector<int>> dimensions;
-  std::vector<std::vector<int>> index;
-  std::stringstream s;
-
-  std::tie(n_col, n_parameters, names, n_dim, dimensions, index) = h;
-  s << "number of columns: " << n_col << ", number of parameters: " << n_parameters << std::endl;
-  for (int i = 0; i < n_parameters; ++i) {
-    s << "parameter: " << names[i] << ", number of dimensions: " << n_dim[i];
-    if (n_dim[i] > 0) 
-      s << ", size: ";
-      for (int j = 0; j < dimensions[i].size(); ++j) {
-        if (j != 0) 
-          s << " x ";
-        s << dimensions[i][j];
-      }
-    s << std::endl;
-  }
-  return s.str();
-}
-
-bool is_comment(std::string& s) {
-  return *(s.begin()) == '#';
-}
-
-void read_parameters(std::string& line, header_t& h, parameter_t& p) {
+/* Must handle all non-commented lines after the header.
+ *
+ * @param line, the line (std::string reference) to read.
+ * @param h, const header tuple reference with indexing info.
+ * @param p, reference to parameter_t to modify with new samples.
+ * */ 
+void read_parameters(std::string& line, const header_t& h, parameter_t& p) {
   auto head = line.begin();
   auto tail = line.begin();
 
@@ -114,11 +106,46 @@ void read_parameters(std::string& line, header_t& h, parameter_t& p) {
   }
 }
 
+/* Reshapes parameters from [parameter, idx x iteration] to
+ * [parameter, iteration, idx]
+ *
+ * @rparam p reference to parameters to reshape.
+ */
+void reshape_parameters(const header_t& h, parameter_t& p) {
+  int n_parameters = p.size();
+  std::vector<std::vector<int>> dimensions = std::get<4>(h);
+  for (std::vector<double>::size_type i = 0; i < p.size(); ++i) {
+    std::vector<double>::size_type n_entries = std::accumulate(
+      dimensions[i].begin(), dimensions[i].end(), 1, std::multiplies<std::vector<double>::size_type>());
+    std::vector<double>::size_type n_iterations = p[i].size() / n_entries;
+    std::vector<double> x(p[i].size());
+    for (std::vector<double>::size_type j = 0; j < x.size(); ++j) {
+      std::vector<double>::size_type k = j % n_iterations;
+      std::vector<double>::size_type m = j / n_iterations;
+      std::vector<double>::size_type n = k * n_entries + m;  
+      x[j] = p[i][n];
+    }
+    p[i] = x;
+  }  
+}
+
+/* Must handle all the lines of the 'mass matrix' portion within
+ * the .csv.  Not done yet. 
+ *
+ * @param commented lines within .csv file.
+ * @return mass matrix (mm_t) 
+ */
 mm_t read_mass_matrix(std::string& line) {
   mm_t mm;
   return mm;
 }
 
+
+/* Reads header, mass matrix, and parameter values from file stream.
+ *
+ * @param input file stream (f) 
+ * @return tuple with header and parameters parsed
+ */
 std::tuple<header_t, parameter_t> read_samples(std::ifstream& f) {
   header_t header;
   int n_col = 0;
@@ -142,23 +169,25 @@ std::tuple<header_t, parameter_t> read_samples(std::ifstream& f) {
       mm_t mm = read_mass_matrix(line);
     }
   }
+  reshape_parameters(header, parameters);
   return std::make_tuple(header, parameters);
 }
 
-int main(int argc, char* argv[]) {
-  if(argc != 2) {
-    std::cerr << "provide one argument." << std::endl;
-    return 1;
-  }
-
-  header_t header;
-  parameter_t parameters;
-  std::ifstream f(argv[1]);
-  std::tie(header, parameters) = read_samples(f);
-
-  std::cout << header_summary(header);
-  return 0;
-}
+/* Test program. */
+//int main(int argc, char* argv[]) {
+//  if(argc != 2) {
+//    std::cerr << "provide one argument." << std::endl;
+//    return 1;
+//  }
+//
+//  header_t header;
+//  parameter_t parameters;
+//  std::ifstream f(argv[1]);
+//  std::tie(header, parameters) = read_samples(f);
+//
+//  std::cout << header_summary(header);
+//  return 0;
+//}
 
 
 
