@@ -1,41 +1,4 @@
 
-#' Extract array set from a Stan file set.
-#'
-#' @param set object created by `read_stan_set`
-#' @return list of arrays, one per chain in set 
-#' @export
-create_array_set = function(set) {
-  if (!isTRUE(set[['merged']])) {
-    for (i in 1:length(set[['data']])) {
-      set[['data']][[i]] = generate_parameter_arrays(set[['data']][[i]]) 
-    }
-  } else {
-    set[['data']] = generate_parameter_arrays(set[['data']])
-  }
-  set[['is_array']] = TRUE
-  return(set)
-}
-
-#' Extract a single parameter array from a Stan file set.
-#'
-#' @param set object created by `read_stan_set`
-#' @return list of arrays, one per chain in set 
-#' @export
-extract_array = function(set, parameter) {
-  if (!isTRUE(set[['merged']])) {
-    o = list()
-    for (i in seq_along(set[['data']])) {
-      wh = colnames(set[['data']][[i]]) %>% get_split_column_indexes()
-      sub_data = set[['data']][[i]][,wh[[parameter]], drop=FALSE]
-      o[[i]] = generate_parameter_array(sub_data)
-    }
-  } else {
-    wh = colnames(set[['data']]) %>% get_split_indexes()
-    sub_data = set[['data']][,wh[[parameter]], drop=FALSE]
-    o = generate_parameter_array(sub_data)
-  }
-  return(o)
-}
 
 #' Create margin labels following a pattern
 #'
