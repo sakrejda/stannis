@@ -34,12 +34,12 @@ read_file_set = function(root='.', control = 'finalized.yaml', samples = 'output
   if (length(csv_files) == 0)
     stop(paste0("No files matching the pattern were found at root: ", root, "\n"))
   attempt = try({
-    n_chains = length(files)
-    metadata = lapply(files, yaml::yaml.load_file)
-    csv_data = lapply(files, read_stan_csv)
+    n_chains = length(csv_files)
+    metadata = lapply(control_files, yaml::yaml.load_file)
+    csv_data = lapply(csv_files, read_stan_csv)
     grouping = list()
     for ( i in 1:n_chains) {
-      n_iterations = metadata[[i]][['num_warmup']] + metadata[[i]][['num_samples']]
+      n_iterations = metadata[[i]][['sample']][['num_warmup']] + metadata[[i]][['sample']][['num_samples']]
       grouping[[i]] = data.frame(
         iteration = 1:n_iterations,
         chain = i, 
@@ -50,7 +50,7 @@ read_file_set = function(root='.', control = 'finalized.yaml', samples = 'output
     return(list(metadata=metadata, n_chains = n_chains, 
                 header_data = data[c('n_col', 'n_parameters', 'p_names', 'n_dim',
                                      'dimensions', 'index')],
-                data = data[['parameters']]
+                data = data[['parameters']],
                 grouping = grouping))
   })
   return(list())
@@ -84,7 +84,6 @@ trim_warmup = function(set) {
 #' @export
 merge_chains = function(set) {
   data = set[['data']]
-  cn = names(samples[[1]])
   o = list(
     n_chains = set[['n_chains']],
     metadata = set[['metadata']],
