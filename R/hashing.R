@@ -39,6 +39,8 @@ create_hash <- function(args) {
     init_hash = ''
   if (is.null(args[['hash_salt']]))
     hash_salt <- ""
+  else
+    hash_salt <- args[['hash_salt']]
   full_hash = openssl::sha256(x = paste(project_id_hash, model_hash,
     data_hash, init_hash, hash_salt, sep = ':'))
   return(full_hash)
