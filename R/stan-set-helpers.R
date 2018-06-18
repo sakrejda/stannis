@@ -36,21 +36,22 @@ read_file_set = function(root='.', control = 'finalized.yaml', samples = 'output
   attempt = try({
     n_chains = length(csv_files)
     metadata = lapply(control_files, yaml::yaml.load_file)
-    csv_data = lapply(csv_files, read_stan_csv)
     grouping = list()
     for ( i in 1:n_chains) {
       n_iterations = metadata[[i]][['sample']][['num_warmup']] + metadata[[i]][['sample']][['num_samples']]
+      n_warmup = metadata[[i]][['sample']][['num_warmup']]
       grouping[[i]] = data.frame(
         iteration = 1:n_iterations,
         chain = i, 
-        warmup = (1:n_iterations) <= metadata[[i]][['num_warmup']],
-        post_warmup = (1:n_iterations) > metadata[[i]][['num_warmup']]
+        warmup = (1:n_iterations) <= n_warmup,
+        post_warmup = (1:n_iterations) > n_warmup
       )
     }
+    csv_data = lapply(csv_files, read_stan_csv)
+    header_data = lapply(csv_data, function(x) x[c('n_col', 'n_parameters', 'p_names', 'n_dim', 'dimensions', 'index')])
     return(list(metadata=metadata, n_chains = n_chains, 
-                header_data = data[c('n_col', 'n_parameters', 'p_names', 'n_dim',
-                                     'dimensions', 'index')],
-                data = data[['parameters']],
+                header_data = header_data,
+                data = lapply(csv_data, `[[`, 'parameters'),
                 grouping = grouping))
   })
   return(list())
@@ -64,17 +65,31 @@ read_file_set = function(root='.', control = 'finalized.yaml', samples = 'output
 #' @export
 trim_warmup = function(set) {
   for (i in seq_along(set[['data']])) {
-    idx = set[['grouping']][[i]][['post-warmup']]
-    data = set[['data']][[i]]
-    ndim = dim(data) %>% length
-    if (ndim < 2) 
-      data = data[idx]
-    else 
-      data = apply(data, 2:length(dim(data)), function(x, idx) x[idx])
-    set[['data']][[i]] = data    
+    idx = set[['grouping']][[i]][['post_warmup']]
+    for (p in names(set[['data']][[i]])) {
+      data = set[['data']][[i]][[p]]
+      ndim = dim(data) %>% length
+      if (ndim < 2) 
+        data = data[idx]
+      else 
+        data = apply(data, 2:ndim, function(x, idx) x[idx], idx=idx)
+      set[['data']][[i]][[p]] = data    
+    }
     set[['grouping']][[i]] = set[['grouping']][[i]][idx,]
   }
   return(set)
+}
+
+#' Get names of parameters in set
+#'
+#' @param set object created by read_file_set
+#' @return names of parameters in set
+#' @export
+get_parameter_names = function(set) {
+  matchy_names = sapply(set[['data']], names) %>%
+    apply(1, function(x) length(unique(x)) == 1) %>%
+    all
+  return(names(set[['data']][[1]]))
 }
 
 #' Merge chains
@@ -87,10 +102,19 @@ merge_chains = function(set) {
   o = list(
     n_chains = set[['n_chains']],
     metadata = set[['metadata']],
-    data = do.call(abind::abind, c(set[['data']], list(along=-1),
-      list(dimnames = dimnames(set[['data']][[1]])))),
+    data = list(),
     grouping = do.call(rbind, set[['grouping']])
   )
+  d = list()
+  parameters = get_parameter_names(set) 
+  for (p in parameters) {
+    d[[p]] <- list()
+    for (i in 1:length(set[['data']])) {
+      d[[p]][[i]] <- set[['data']][[i]][[p]] 
+    }
+    o[['data']][[p]] <- do.call(abind::abind, c(d[[p]], list(along=1),
+      list(dimnames = dimnames(set[['data']][[1]][[p]]))))
+  }
   o[['merged']] = TRUE
   return(o)
 }
