@@ -72,7 +72,7 @@ finalize_args <- function(args) {
   if (is_init_file && !file.exists(args[['init']])) {
     msg <- paste0("Initial values file missing at: ", args[['init']])
     stop(msg)
-  } else {
+  } else if (is_init_file) {
     file.copy(args[['init']], args[['fit_prefix']], overwrite=TRUE)
   }
   yaml::write_yaml(args, file = file.path(args[['output_prefix']], "finalized.yaml"))

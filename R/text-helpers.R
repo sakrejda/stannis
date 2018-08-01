@@ -77,8 +77,6 @@ internal_parameters <- function(s) s[grepl(pattern='__$', x=s)]
 model_parameters <- function(s) s[!grepl(pattern='__$', x=s)]
 
 
-
-
 #' Find number at the head of a string.
 #'
 #' @param s string
