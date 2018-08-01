@@ -1,85 +1,5 @@
 
 
-#' Finalize an argument tree object by merging components
-#' that are not fully specified.
-#'
-#' @param args arg-tree object (list).
-#' @return same tree, ready to pass to 'construct_cmdline'
-#'         and 'run_model_cmd'
-#' @export
-finalize_args <- function(args) {
-  if (is.null(args[['output']]))
-    args[['output']] <- list()
-  args[['output']][['terminal']] = 'terminal.txt'
-  args[['output']][['error']] = 'error.txt'
-  args[['output']][['file']] = 'output.csv'
-  args[['output']][['diagnostic_file']] = 'diagnostics.csv'
-  args[['output']][['control']] = 'control.yaml'
-  output_files <- c('terminal', 'error', 'file', 'diagnostic_file', 'control')
-
-  if (is.null(args[['target_dir']]))
-    args[['target_dir']] <- "fits"
-
-  if (!dir.exists(args[['target_dir']]))
-    dir.create(args[['target_dir']], recursive = TRUE)
-  args[['fit_prefix']] <- file.path(args[['target_dir']], 
-    paste0("fit-", args[['hash']]))
-  if (!dir.exists(args[['fit_prefix']]))
-    dir.create(args[['fit_prefix']], recursive = TRUE)
-  if (!dir.exists(file.path(args[['fit_prefix']], 'data')))
-    dir.create(file.path(args[['fit_prefix']], 'data'), recursive=TRUE)
-  if (!dir.exists(file.path(args[['fit_prefix']], 'init')))
-    dir.create(file.path(args[['fit_prefix']], 'init'), recursive=TRUE)
-
-  putative_prefix = file.path(args[['fit_prefix']], 
-    paste0("chain-", args[['sample']][['chain']]))
-#  while (dir.exists(putative_prefix)) {
-#    args[['sample']][['chain']] <- args[['sample']][['chain']] + 1
-#    putative_prefix = file.path(args[['fit_prefix']], 
-#      paste0("chain-", args[['sample']][['chain']]))
-#  }
-  if (dir.exists(putative_prefix)) {
-    args[['existing_output']] = TRUE
-  } else {
-    dir.create(putative_prefix)
-  }
-
-  args[['output_prefix']] <- putative_prefix
-  for (output in output_files) {
-    args[['output']][[output]] <- file.path(args[['output_prefix']], 
-      args[['output']][[output]])
-  }
-
-  data_prefix <- args[['data_dir']]
-  if (!is.null(data_prefix) && !is.null(args[['data']][['file']])) {
-    args[['data']][['file']] <- file.path(data_prefix, args[['data']][['file']])
-  }
-  if (!is.null(args[['data']]) && !is.null(args[['data']][['file']])) {
-    if (!file.exists(args[['data']][['file']])) {
-      msg <- paste0("Data file missing at: ", args[['data']][['file']])
-      stop(msg)
-    } else {
-      file.copy(args[['data']][['file']], args[['fit_prefix']], overwrite=TRUE)
-    }
-  }
-
-  init_exists <- !is.null(args[['init']]) && !is.na(args[['init']])
-  is_init_file <- init_exists && is.na(as.numeric(args[['init']]))
-  init_prefix <- args[['init_dir']]
-  if (!is.null(init_prefix) && init_exists && is_init_file) {
-    args[['init']] <- file.path(init_prefix, args[['init']])
-  }
-  if (is_init_file && !file.exists(args[['init']])) {
-    msg <- paste0("Initial values file missing at: ", args[['init']])
-    stop(msg)
-  } else if (is_init_file) {
-    file.copy(args[['init']], args[['fit_prefix']], overwrite=TRUE)
-  }
-  yaml::write_yaml(args, file = file.path(args[['output_prefix']], "finalized.yaml"))
-  register_run(args)
-  return(args)
-}
-
 #' Based on an argument tree ('args' object) find a model
 #' and return the path. If the model file (.stan file) is not
 #' found, check for the presence of a partial model file (.model file)
@@ -97,8 +17,8 @@ find_model <- function(args) {
     part_file_path = dir(path = search_path, pattern = part_file_pattern, full.names=TRUE)
     if (length(part_file_path) == 0) {
       msg <- paste0("Model not found. \n", 
-        "searched in: ", search_path,
-        "pattern: ", part_file_path)
+        "searched in: ", paste0(search_path, collapse=", "), "\n",
+        "pattern: ", paste0(part_file_path, collapse=", "))
       stop(msg)
     } 
     full_file_path = substitutions(model = part_file_path, search = search_path,
@@ -132,35 +52,19 @@ get_binary_dir <- function(args) {
 }
 
 
-#' expand chains, inits, or both
+#' Replicate arg-tree and add replicate tag.
 #'
 #' @param args agr-tree object (list).
 #' @return list of arg-trees, separated s.t. each arg-tree
-#'         is for one chain and one init file.
+#'         is for one replicate
 #' @export
-flatten_args <- function(args) {
-  args_out <- list()
-  if (is.null(args[['init']]) || length(args[['init']]) == 0) {
-    n_inits <- 1
-  } else {
-    n_inits <- length(args[['init']])
+replicate_args <- function(args) {
+  n_replicates <- args[['replicates']]
+  args = replicate(n = n_replicates, expr = args, simplify = FALSE)
+  for (r in 1:n_replicates) {
+    args[[r]][['replicate']] <- r
   }
-  if (is.null(args[['sample']]) || is.null(args[['sample']][['num_chains']])) {
-    n_chains <- 1
-  } else {
-    n_chains <- args[['sample']][['num_chains']]
-  }
-  n_total <- n_inits * n_chains
-  if (is.null(args[['sample']])) 
-    args[['sample']] <- list()
-  for (chain in 1:n_total) {
-    arg_append <- args
-    arg_append[['sample']][['chain']] <- chain
-    if (!is.null(args[['init']]))
-      arg_append[['init']] <- args[['init']][(chain - 1) %% n_inits + 1]
-    args_out[[length(args_out) + 1]] <- c(arg_append)
-  }
-  return(args_out)
+  return(args)
 }
 
 

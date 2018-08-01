@@ -9,10 +9,7 @@ hash_match <- function(a, b) {
   if (is.null(a) || is.null(b))
     return(FALSE)
   cmp <- a == b
-  if (isTRUE(all(cmp)))
-    return(TRUE)
-  else
-    return(FALSE)
+  return(isTRUE(all(cmp)))
 }
 
 #' Find CmdStan installation
