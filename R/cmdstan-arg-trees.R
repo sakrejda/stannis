@@ -26,37 +26,6 @@ merge_trees <- function(...) {
   return(args_out)
 }
 
-#' Load a Stannis run control list of arg-trees from 
-#' a .yaml file
-#'
-#' Format description: the two top-level items are
-#' 'defaults', and 'runs'.  The each item under those
-#' is a Stannis arg-tree with CmdStan arguments.
-#'
-#' Arg-trees are loaded, each run arg-tree is merged with the
-#' defaults, and a hash is added to each.
-#' 
-#' @param file a .yaml file with arg-tree structure
-#'        and defaults.
-#' @return list of arg-trees with hashes, not finalized.
-#' @export
-load_args <- function(file) {
-  control <- yaml::yaml.load_file(file)
-  defaults <- control[['defaults']]
-  all_args <- list()
-  for (i in 1:length(control[['runs']])) {
-    args <- merge_trees(defaults, control[['runs']][[i]])
-    args[['binary']] <- compile_model(args)
-    args <- replicate_args(args)
-    all_args <- c(all_args, args)
-  }
-  for (i in 1:length(all_args)) {
-    all_args[[i]][['hash']] <- create_hash(all_args[[i]])
-  }
-  return(all_args)
-}
-
-
 #' Prepare a single input tree by combining paths.
 #'
 #' @param args an arg-tree
@@ -84,8 +53,38 @@ prepare_inputs = function(args) {
     msg <- paste0("Initial values file missing at: ", args[['init']])
     stop(msg)
   }
+  args[['hash']] <- create_hash(all_args[[i]])
   return(args)
 }
+
+#' Load a Stannis run control list of arg-trees from 
+#' a .yaml file
+#'
+#' Format description: the two top-level items are
+#' 'defaults', and 'runs'.  The each item under those
+#' is a Stannis arg-tree with CmdStan arguments.
+#'
+#' Arg-trees are loaded, each run arg-tree is merged with the
+#' defaults, and a hash is added to each.
+#' 
+#' @param file a .yaml file with arg-tree structure
+#'        and defaults.
+#' @return list of arg-trees with hashes, not finalized.
+#' @export
+load_args <- function(file) {
+  control <- yaml::yaml.load_file(file)
+  defaults <- control[['defaults']]
+  all_args <- list()
+  for (i in 1:length(control[['runs']])) {
+    args <- merge_trees(defaults, control[['runs']][[i]])
+    args[['binary']] <- compile_model(args)
+    args <- replicate_args(args)
+    args <- prepare_inputs(args)
+    all_args <- c(all_args, args)
+  }
+  return(all_args)
+}
+
 
 #' Finalize an argument tree object by merging components
 #' that are not fully specified and creating output directories
@@ -110,7 +109,7 @@ finalize_args <- function(args) {
 
   if (!dir.exists(args[['target_dir']]))
     dir.create(args[['target_dir']], recursive = TRUE)
-  args[['fit_path']] <- file.path(args[['target_dir']], args[['hash']], args[['replicate']])
+  args[['fit_path']] <- file.path(args[['target_dir']], args[['hash']])
   if (!dir.exists(args[['fit_path']]))
     dir.create(args[['fit_path']], recursive = TRUE)
   if (!dir.exists(file.path(args[['fit_path']], 'data')))
