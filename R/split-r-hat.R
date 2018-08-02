@@ -62,7 +62,7 @@ calculate_set_psrf <- function(set) {
   parameters <- parameters[!(parameters %in% sampler_parameters)]
   o <- list()
   for (parameter in parameters) {
-    chains = lapply(set[['data']], function(d) d[[parameter]])
+    chains = lapply(set[['data']], `[[`, parameter)
     o[[parameter]] <- calculate_parameter_psrf(chains)
   }
   return(o)
