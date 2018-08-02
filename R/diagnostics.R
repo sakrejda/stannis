@@ -49,21 +49,24 @@ calculate_reduction <- function(chains, f) {
   return(r_hat)
 }
 
-#' Calculate Potential Scale Reduction Factor (PSRF)
+#' Calculate Potential Scale Reduction Factor (PSRF) or 
+#' other per-parameter-scalar summary.
 #'
-#' Works on an entire set of parameters.
+#' Works on an entire set of parameters with specific list
+#' structure
 #'
 #' @param set the chains to operate on.
 #' @return list of PSRF arrays (one per parameter)
 #' @export 
-calculate_set_psrf <- function(set) {
+calculate_set_reduction <- function(set, f = split_rhat_rfun, 
+  drop = c('stepsize__', 'treedepth__', 'n_leapfrog__', 'divergent__', 'iteration')
+) {
   parameters <- names(set$data[[1]])
-  sampler_parameters = c('stepsize__', 'treedepth__', 'n_leapfrog__', 'divergent__', 'iteration')
   parameters <- parameters[!(parameters %in% sampler_parameters)]
   o <- list()
   for (parameter in parameters) {
     chains = lapply(set[['data']], `[[`, parameter)
-    o[[parameter]] <- calculate_parameter_reduction(chains, split_rhat_rfun)
+    o[[parameter]] <- calculate_reduction(chains, split_rhat_rfun)
   }
   return(o)
 }
