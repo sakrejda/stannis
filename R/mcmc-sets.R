@@ -20,29 +20,88 @@ read_stan_csv = function(file) {
   return(os)
 }
 
+#' Process sampling file
+
+#' Process diagnostics
+#'
+#' @param x `read_stan_csv` output of diagnostic .csv file.
+process_diagnostics = function(x) {
+  o = list()
+  o[['algorithm']] <- list()
+  o[['position']] <- list()
+  o[['momentum']] <- list()
+  o[['gradient']] <- list()
+  n_algorithm_parameters = 7
+  n_sampler_parameters = (x[['n_parameters']] - n_algorithm_parameters) / 3
+  if (n_sampler_parameters != trunc(n_sampler_parameters))
+    stop("This is not a diagnostic file.")
+
+  o[['algorithm']][['n_parameters']] <- n_algorithm_parameters
+  o[['position']][['n_parameters']] <- n_sampler_parameters
+  o[['momentum']][['n_parameters']] <- n_sampler_parameters
+  o[['gradient']][['n_parameters']] <- n_sampler_parameters
+
+  algorithm_start = 1
+  algorithm_stop = algorithm_start + n_algorithm_parameters - 1
+  position_start = algorithm_stop + 1
+  position_stop = position_start + n_sampler_parameters - 1
+  momentum_start = position_stop + 1
+  momentum_stop = momentum_start + n_sampler_parameters - 1
+  gradient_start = momentum_stop + 1
+  gradient_stop = gradient_start + n_sampler_parameters - 1
+  o[['algorithm']][['p_names']] <- x[['p_names']][algorithm_start:algorithm_stop]
+  o[['position']][['p_names']] <- x[['p_names']][position_start:position_stop]
+  o[['momentum']][['p_names']] <- x[['p_names']][momentum_start:momentum_stop]
+  o[['gradient']][['p_names']] <- x[['p_names']][gradient_start:gradient_stop]
+
+  o[['algorithm']][['n_dim']] <- x[['n_dim']][algorithm_start:algorithm_stop]
+  o[['position']][['n_dim']] <- x[['n_dim']][position_start:position_stop]
+  o[['momentum']][['n_dim']] <- x[['n_dim']][momentum_start:momentum_stop]
+  o[['gradient']][['n_dim']] <- x[['n_dim']][gradient_start:gradient_stop]
+  
+  o[['algorithm']][['dimensions']] <- x[['dimensions']][algorithm_start:algorithm_stop]
+  o[['position']][['dimensions']] <- x[['dimensions']][position_start:position_stop]
+  o[['momentum']][['dimensions']] <- x[['dimensions']][momentum_start:momentum_stop]
+  o[['gradient']][['dimensions']] <- x[['dimensions']][gradient_start:gradient_stop]
+
+  o[['algorithm']][['index']] <- x[['index']][algorithm_start:algorithm_stop]
+  o[['position']][['index']] <- x[['index']][position_start:position_stop]
+  o[['momentum']][['index']] <- x[['index']][momentum_start:momentum_stop]
+  o[['gradient']][['index']] <- x[['index']][gradient_start:gradient_stop]
+
+  o[['algorithm']][['parameters']] <- x[['parameters']][algorithm_start:algorithm_stop]
+  o[['position']][['parameters']] <- x[['parameters']][position_start:position_stop]
+  o[['momentum']][['parameters']] <- x[['parameters']][momentum_start:momentum_stop]
+  o[['gradient']][['parameters']] <- x[['parameters']][gradient_start:gradient_stop]
+
+  return(o)
+}
+
 #' Read a set of Stan files and their metadata
 #'
 #' @param root directory to read from
 #' @param pattern pattern of filenames to read
 #' @return a processed and merged list of files.
 #' @export 
-read_file_set = function(root='.', control = 'finalized.yaml', samples = 'output.csv', ...) {
+read_file_set = function(root='.', control = 'finalized.yaml', 
+  samples = 'output.csv', diagnostics = 'diagnostics.csv', ...
+) {
   control_files = find_file(root, control, ...)
   if (length(control_files) == 0)
     control_files = NULL
   csv_files = find_file(root, samples, ...)
   if (length(csv_files) == 0)
-    stop(paste0("No files matching the pattern were found at root: ", root, "\n"))
-  attempt = try({
+    stop(paste0("Sampling matching the pattern were not found at root: ", root, "\n"))
+
     n_chains = length(csv_files)
     metadata = lapply(control_files, yaml::yaml.load_file)
     grouping = list()
     for ( i in 1:n_chains) {
-      n_iterations = metadata[[i]][['sample']][['num_warmup']] + metadata[[i]][['sample']][['num_samples']]
+      n_iterations = metadata[[i]][['sample']][['num_warmup']] + 
+	      metadata[[i]][['sample']][['num_samples']]
       n_warmup = metadata[[i]][['sample']][['num_warmup']]
       grouping[[i]] = data.frame(
-        iteration = 1:n_iterations,
-        chain = i, 
+        iteration = 1:n_iterations, chain = i, 
         warmup = (1:n_iterations) <= n_warmup,
         post_warmup = (1:n_iterations) > n_warmup
       )
@@ -51,11 +110,22 @@ read_file_set = function(root='.', control = 'finalized.yaml', samples = 'output
     header_data = lapply(csv_data, function(x) x[c(
       'n_col', 'n_parameters', 'p_names', 'n_dim', 
       'dimensions', 'index', 'timing', 'step_size', 'mass_matrix')])
-    return(list(metadata=metadata, n_chains = n_chains, 
+  sampling <- list(metadata=metadata, n_chains = n_chains, 
                 header_data = header_data,
                 data = lapply(csv_data, `[[`, 'parameters'),
-                grouping = grouping))
+                grouping = grouping)
+
+  diagnostic_files = find_file(root, samples, ...)
+  if (length(diagnostic_files) != length(sampling[['header_data']]))
+    stop(paste0("Diagnostic files (for each sampling file) matching",
+		"the pattern were not found at root: ", root, "\n"))
+  diagnostics = try({
+    n_chains = length(diagnostic_files)
+    diagnostic_data = lapply(diagnostic_files, read_stan_csv) %>%
+      lapply(process_diagnostics)
+    diagnostic_data
   })
+  sampling[['diagnostics']] = diagnostics
   return(list())
 }
 
@@ -110,11 +180,11 @@ merge_chains = function(set) {
   d = list()
   parameters = get_parameter_names(set) 
   for (p in parameters) {
-    d[[p]] <- list()
+    d[[p]] = list()
     for (i in 1:length(set[['data']])) {
-      d[[p]][[i]] <- set[['data']][[i]][[p]] 
+      d[[p]][[i]] = set[['data']][[i]][[p]] 
     }
-    o[['data']][[p]] <- do.call(abind::abind, c(d[[p]], list(along=1),
+    o[['data']][[p]] = do.call(abind::abind, c(d[[p]], list(along=1),
       list(dimnames = dimnames(set[['data']][[1]][[p]]))))
   }
   o[['merged']] = TRUE
