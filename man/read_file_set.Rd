@@ -5,7 +5,7 @@
 \title{Read a set of Stan files and their metadata}
 \usage{
 read_file_set(root = ".", control = "finalized.yaml",
-  samples = "output.csv", ...)
+  samples = "output.csv", diagnostics = "diagnostics.csv", ...)
 }
 \arguments{
 \item{root}{directory to read from}

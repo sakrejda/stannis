@@ -32,20 +32,20 @@ split_rhat_rfun <- function(sims) {
 } 
 
 
-#' Calculate Potential Scale Reduction Factor (PSRF) 
+#' Calculate a per-parameter summary
 #'
 #' Works on a single parameter from a set of chains.
 #' 
 #' @param set the chains to operate on
-#' @return array of PSRF values for each entry of the parameter.
+#' @return array of f(values) for each entry of the parameter.
 #' @export
-calculate_parameter_psrf <- function(chains) {
+calculate_reduction <- function(chains, f) {
   samples = do.call(what=abind::abind, args = c(chains, along=-1)) 
   n_dim = length(dim(samples))
   if (n_dim == 2) 
-    r_hat = split_rhat_rfun(t(samples))
+    r_hat = f(t(samples))
   else
-    r_hat = apply(samples, 3:n_dim, function(x) split_rhat_rfun(t(x)))
+    r_hat = apply(samples, 3:n_dim, function(x) f(t(x)))
   return(r_hat)
 }
 
@@ -63,7 +63,7 @@ calculate_set_psrf <- function(set) {
   o <- list()
   for (parameter in parameters) {
     chains = lapply(set[['data']], `[[`, parameter)
-    o[[parameter]] <- calculate_parameter_psrf(chains)
+    o[[parameter]] <- calculate_parameter_reduction(chains, split_rhat_rfun)
   }
   return(o)
 }
