@@ -211,37 +211,6 @@ std::tuple<header_t, parameter_t, mm_t, timing_t> read_samples(std::ifstream& f)
   return std::make_tuple(header, parameters, mm, tt);
 }
 
-/* Reads header, mass matrix, and parameter values from file stream.
- * Assumes a CmdStan diagnostic file structure.
- *
- * @param input file stream (f) 
- * @return tuple with header and parameters parsed
- */
-std::tuple<header_t, parameter_t, mm_t, timing_t> read_samples(std::ifstream& f) {
-  header_t header;
-  parameter_t parameters;
-  mm_t mm;
-  timing_t tt;
-
-  std::string line;
-  bool got_header = false;
-  while (std::getline(f, line)) {
-    if (!got_header && !is_comment(line)) {
-      header = read_header(line);
-      got_header = true;
-    } else if (got_header && !is_comment(line)) {
-      read_parameters(line, header, parameters);
-    } else if (is_mm_start(line)) {
-      mm = read_mass_matrix(f);  // advances past line
-    } else if (got_header && is_comment(line)) {
-      tt = read_timing(f); // advances past line
-      break;
-    }
-  }
-  reshape_parameters(header, parameters);
-  return std::make_tuple(header, parameters, mm, tt);
-}
-
 /* Test program. */
 //int main(int argc, char* argv[]) {
 //  if(argc != 2) {
