@@ -44,4 +44,21 @@ bool is_comment(std::string& s) {
   return *(s.begin()) == '#';
 }
 
+/* Check if string starts with the sequence
+ * Sequence: '#  Elapsed Time:'
+ *
+ * @param s string to check.
+ */
+bool is_timing(std::string& s) {
+  return is_comment(s) && s.substr(0,16) == "#  Elapsed Time:";
+}
+
+/* Check if string indicates start of a mass matrix
+ * Sequence: '#.*mass matrix:'
+ *
+ * @param s string to check.
+ */
+bool is_mm_start(std::string& s) {
+  return is_comment(s) && s.find(" mass matrix:") != std::string::npos;
+
 #endif

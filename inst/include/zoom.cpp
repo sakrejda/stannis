@@ -20,7 +20,7 @@
  * @param end one-past-end of column name string
  * @rparam dim vector of dimension sizes
  */
-void modify_dimensions(std::string::iterator head, std::string::iterator end, std::vector<int>& dim) {
+void update_dimensions(std::string::iterator head, std::string::iterator end, std::vector<int>& dim) {
   int i = 0;
   std::string::iterator tail;;
   for (head = std::find(head, end, '.'); head != end; head = std::find(head + 1, end, '.')) {
@@ -67,7 +67,7 @@ header_t read_header(std::string& line) {
       index.push_back({n_col - 1});
     } else {
       index[index.size() - 1].push_back(n_col - 1);
-      modify_dimensions(head, tail, dimensions[dimensions.size() - 1]); 
+      update_dimensions(head, tail, dimensions[dimensions.size() - 1]); 
     }
     last_name = current_name;
     if (tail != line.end())
@@ -130,47 +130,91 @@ void reshape_parameters(const header_t& h, parameter_t& p) {
 }
 
 /* Must handle all the lines of the 'mass matrix' portion within
- * the .csv.  Not done yet. 
+ * the .csv. 
  *
  * @param commented lines within .csv file.
  * @return mass matrix (mm_t) 
  */
-mm_t read_mass_matrix(std::string& line) {
+mm_t read_mass_matrix(std::ifstream& f) {
+  std::string line;
+  std::getline(f, line);
   mm_t mm;
+  auto head = line.begin() + 1; // Skip '#'
+  auto tail = line.begin() + 1;
+  while (tail != line.end()) {
+    tail = std::find(head, line.end(), ',');
+    mm.push_back(std::stod(std::string(head, std::find(head, tail, ','))));
+    if (tail != line.end())
+      head = tail + 1;
+  } 
   return mm;
 }
 
+/* Must handle all the lines of the 'timing' portion at the tail of 
+ * the .csv. 
+ *
+ * @param commented lines within .csv file.
+ * @return timing (timing_t)
+ */
+timing_t read_timing(std::ifstream& f) {
+  std::string line;
+  timing_t tt;
+  std::getline(f, line);
+  auto head = std::find(line.begin() + 1, line.end(), ':') + 1;
+  auto tail = std::find(head, line.end(), 's');
+  tt.push_back(std::stod(std::string(head, tail)));
+  std::getline(f, line);
+  head = line.begin() + 1;
+  tail = std::find(head, line.end(), 's');
+  tt.push_back(std::stod(std::string(head, tail)));
+  std::getline(f, line);
+  head = line.begin() + 1;
+  tail = std::find(head, line.end(), 's');
+  tt.push_back(std::stod(std::string(head, tail)));
+  return tt;
+}
+  
+   
+
+  while (tail != line.end()) {
+    tail = std::find(head, line.end(), ',');
+    mm.push_back(std::stod(std::string(head, std::find(head, tail, ','))));
+    if (tail != line.end())
+      head = tail + 1;
+  } 
+  return mm;
+}
 
 /* Reads header, mass matrix, and parameter values from file stream.
  *
  * @param input file stream (f) 
  * @return tuple with header and parameters parsed
  */
-std::tuple<header_t, parameter_t> read_samples(std::ifstream& f) {
+std::tuple<header_t, parameter_t, mm_t, timing_t> read_samples(std::ifstream& f) {
   header_t header;
-  int n_col = 0;
-  int n_parameters = 0;
-  std::vector<std::string> names;
-  std::vector<int> n_dim;
-  std::vector<std::vector<int>> dimensions;
-  std::vector<std::vector<int>> index;
   parameter_t parameters;
+  mm_t mm;
+  timing_t tt;
 
   std::string line;
   bool got_header = false;
   while (std::getline(f, line)) {
     if (!got_header && !is_comment(line)) {
       header = read_header(line);
-      std::tie(n_col, n_parameters, names, n_dim, dimensions, index) = header;
       got_header = true;
     } else if (got_header && !is_comment(line)) {
+      reading_parameters = true
       read_parameters(line, header, parameters);
+    } else if (is_mm_start(line)) {
+      reading_parameters = false
+      mm = read_mass_matrix(f);  // advances past line
     } else if (got_header && is_comment(line)) {
-      mm_t mm = read_mass_matrix(line);
+      tt = read_timing(f); // advances past line
+      break;
     }
   }
   reshape_parameters(header, parameters);
-  return std::make_tuple(header, parameters);
+  return std::make_tuple(header, parameters, mm, tt);
 }
 
 /* Test program. */

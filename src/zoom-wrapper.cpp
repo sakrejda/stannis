@@ -14,10 +14,12 @@
 Rcpp::List read_cmdstan_csv(Rcpp::StringVector file) {
   header_t header;
   parameter_t parameters;
+  mm_t mass_matrix;
+  timing_t timing;
   std::ifstream f(file[0]);
   if(f.fail())
     throw std::system_error(EBADF, std::system_category(), "Failed to open file.");
-  std::tie(header, parameters) = read_samples(f);
+  std::tie(header, parameters, mass_matrix, timing) = read_samples(f);
   return Rcpp::List::create(
     Rcpp::Named("n_col") = std::get<0>(header),
     Rcpp::Named("n_parameters") = std::get<1>(header),
