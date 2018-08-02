@@ -59,6 +59,7 @@ bool is_timing(std::string& s) {
  * @param s string to check.
  */
 bool is_mm_start(std::string& s) {
-  return is_comment(s) && s.find(" mass matrix:") != std::string::npos;
+  return is_comment(s) && s.find("Adaptation terminated") != std::string::npos;
+}
 
 #endif

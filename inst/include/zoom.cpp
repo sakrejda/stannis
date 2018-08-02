@@ -138,16 +138,22 @@ void reshape_parameters(const header_t& h, parameter_t& p) {
 mm_t read_mass_matrix(std::ifstream& f) {
   std::string line;
   std::getline(f, line);
-  mm_t mm;
-  auto head = line.begin() + 1; // Skip '#'
-  auto tail = line.begin() + 1;
+  auto head = std::find(line.begin(), line.end(), '=') + 1;
+  auto tail = line.end();
+  double step_size = std::stod(std::string(head, tail));
+
+  std::getline(f, line);
+  std::getline(f, line);
+  head = line.begin() + 1; // Skip '#'
+  tail = line.begin() + 1;
+  std::vector<double> mm;
   while (tail != line.end()) {
     tail = std::find(head, line.end(), ',');
     mm.push_back(std::stod(std::string(head, std::find(head, tail, ','))));
     if (tail != line.end())
       head = tail + 1;
   } 
-  return mm;
+  return std::make_tuple(step_size, mm);
 }
 
 /* Must handle all the lines of the 'timing' portion at the tail of 
@@ -174,18 +180,8 @@ timing_t read_timing(std::ifstream& f) {
   return tt;
 }
   
-   
-
-  while (tail != line.end()) {
-    tail = std::find(head, line.end(), ',');
-    mm.push_back(std::stod(std::string(head, std::find(head, tail, ','))));
-    if (tail != line.end())
-      head = tail + 1;
-  } 
-  return mm;
-}
-
 /* Reads header, mass matrix, and parameter values from file stream.
+ * Assumes a CmdStan sampling file structure.
  *
  * @param input file stream (f) 
  * @return tuple with header and parameters parsed
@@ -203,10 +199,39 @@ std::tuple<header_t, parameter_t, mm_t, timing_t> read_samples(std::ifstream& f)
       header = read_header(line);
       got_header = true;
     } else if (got_header && !is_comment(line)) {
-      reading_parameters = true
       read_parameters(line, header, parameters);
     } else if (is_mm_start(line)) {
-      reading_parameters = false
+      mm = read_mass_matrix(f);  // advances past line
+    } else if (got_header && is_comment(line)) {
+      tt = read_timing(f); // advances past line
+      break;
+    }
+  }
+  reshape_parameters(header, parameters);
+  return std::make_tuple(header, parameters, mm, tt);
+}
+
+/* Reads header, mass matrix, and parameter values from file stream.
+ * Assumes a CmdStan diagnostic file structure.
+ *
+ * @param input file stream (f) 
+ * @return tuple with header and parameters parsed
+ */
+std::tuple<header_t, parameter_t, mm_t, timing_t> read_samples(std::ifstream& f) {
+  header_t header;
+  parameter_t parameters;
+  mm_t mm;
+  timing_t tt;
+
+  std::string line;
+  bool got_header = false;
+  while (std::getline(f, line)) {
+    if (!got_header && !is_comment(line)) {
+      header = read_header(line);
+      got_header = true;
+    } else if (got_header && !is_comment(line)) {
+      read_parameters(line, header, parameters);
+    } else if (is_mm_start(line)) {
       mm = read_mass_matrix(f);  // advances past line
     } else if (got_header && is_comment(line)) {
       tt = read_timing(f); // advances past line

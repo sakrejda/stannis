@@ -48,7 +48,9 @@ read_file_set = function(root='.', control = 'finalized.yaml', samples = 'output
       )
     }
     csv_data = lapply(csv_files, read_stan_csv)
-    header_data = lapply(csv_data, function(x) x[c('n_col', 'n_parameters', 'p_names', 'n_dim', 'dimensions', 'index')])
+    header_data = lapply(csv_data, function(x) x[c(
+      'n_col', 'n_parameters', 'p_names', 'n_dim', 
+      'dimensions', 'index', 'timing', 'step_size', 'mass_matrix')])
     return(list(metadata=metadata, n_chains = n_chains, 
                 header_data = header_data,
                 data = lapply(csv_data, `[[`, 'parameters'),

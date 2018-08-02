@@ -13,5 +13,12 @@ create_hash(args)
 hash
 }
 \description{
-create a pseudo-'secret', salted with project_id
+This is a hash of the:
+  1) project id
+  2) model file contents
+  3) model binary contents
+  4) data file contents (if any)
+  5) init file contents (if any)
+  6) arbitrary hash salt
+  7) prepared but not finalized arg tree
 }
