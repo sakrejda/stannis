@@ -29,19 +29,10 @@ process_diagnostics = function(x) {
   fix_diagnostic_names <- function(s) mapply(substr, x=s, stop=nchar(s), MoreArgs=list(start=3))
 
   o = list()
-  o[['algorithm']] <- list()
-  o[['position']] <- list()
-  o[['momentum']] <- list()
-  o[['gradient']] <- list()
   n_algorithm_parameters = 7
   n_sampler_parameters = (x[['n_parameters']] - n_algorithm_parameters) / 3
   if (n_sampler_parameters != trunc(n_sampler_parameters))
     stop("This is not a diagnostic file.")
-
-  o[['algorithm']][['n_parameters']] <- n_algorithm_parameters
-  o[['position']][['n_parameters']] <- n_sampler_parameters
-  o[['momentum']][['n_parameters']] <- n_sampler_parameters
-  o[['gradient']][['n_parameters']] <- n_sampler_parameters
 
   algorithm_start = 1
   algorithm_stop = algorithm_start + n_algorithm_parameters - 1
@@ -51,41 +42,19 @@ process_diagnostics = function(x) {
   momentum_stop = momentum_start + n_sampler_parameters - 1
   gradient_start = momentum_stop + 1
   gradient_stop = gradient_start + n_sampler_parameters - 1
-  o[['algorithm']][['p_names']] <- x[['p_names']][algorithm_start:algorithm_stop]
-  o[['position']][['p_names']] <- fix_diagnostic_names(x[['p_names']][position_start:position_stop])
-  o[['momentum']][['p_names']] <- fix_diagnostic_names(x[['p_names']][momentum_start:momentum_stop])
-  o[['gradient']][['p_names']] <- fix_diagnostic_names(x[['p_names']][gradient_start:gradient_stop])
+  algorithm_names <- x[['p_names']][algorithm_start:algorithm_stop]
+  parameter_names <- x[['p_names']][position_start:position_stop]
 
-  o[['algorithm']][['n_dim']] <- x[['n_dim']][algorithm_start:algorithm_stop]
-  o[['position']][['n_dim']] <- x[['n_dim']][position_start:position_stop]
-  o[['momentum']][['n_dim']] <- x[['n_dim']][momentum_start:momentum_stop]
-  names(o[['momentum']][['n_dim']]) <- o[['momentum']][['p_names']]
-  o[['gradient']][['n_dim']] <- x[['n_dim']][gradient_start:gradient_stop]
-  names(o[['gradient']][['n_dim']]) <- o[['gradient']][['p_names']]
-  
-  o[['algorithm']][['dimensions']] <- x[['dimensions']][algorithm_start:algorithm_stop]
-  o[['position']][['dimensions']] <- x[['dimensions']][position_start:position_stop]
-  o[['momentum']][['dimensions']] <- x[['dimensions']][momentum_start:momentum_stop]
-  names(o[['momentum']][['dimensions']]) <- o[['momentum']][['p_names']]
-  o[['gradient']][['dimensions']] <- x[['dimensions']][gradient_start:gradient_stop]
-  names(o[['gradient']][['dimensions']]) <- o[['gradient']][['p_names']]
-
-  o[['algorithm']][['index']] <- x[['index']][algorithm_start:algorithm_stop]
-  o[['position']][['index']] <- x[['index']][position_start:position_stop]
-  o[['momentum']][['index']] <- x[['index']][momentum_start:momentum_stop]
-  names(o[['momentum']][['index']]) <- o[['momentum']][['p_names']]
-  o[['gradient']][['index']] <- x[['index']][gradient_start:gradient_stop]
-  names(o[['gradient']][['index']]) <- o[['gradient']][['p_names']]
-
-  o[['algorithm']][['parameters']] <- x[['parameters']][algorithm_start:algorithm_stop]
-  o[['position']][['parameters']] <- x[['parameters']][position_start:position_stop]
-  o[['momentum']][['parameters']] <- x[['parameters']][momentum_start:momentum_stop]
-  names(o[['momentum']][['parameters']]) <- o[['momentum']][['p_names']]
-  o[['gradient']][['parameters']] <- x[['parameters']][gradient_start:gradient_stop]
-  names(o[['gradient']][['parameters']]) <- o[['gradient']][['p_names']]
-
+  o[['algorithm']] <- x[['parameters']][algorithm_start:algorithm_stop]
+  o[['position']] <- x[['parameters']][position_start:position_stop]
+  names(o[['position']]) <- parameter_names 
+  o[['momentum']] <- x[['parameters']][momentum_start:momentum_stop]
+  names(o[['momentum']]) <- parameter_names 
+  o[['gradient']] <- x[['parameters']][gradient_start:gradient_stop]
+  names(o[['gradient']]) <- parameter_names
   return(o)
 }
+
 
 #' Read a set of Stan files and their metadata
 #'
@@ -129,13 +98,15 @@ read_file_set = function(root='.', control = 'finalized.yaml',
   if (length(diagnostic_files) != length(sampling[['header_data']]))
     stop(paste0("Diagnostic files (for each sampling file) matching",
 		"the pattern were not found at root: ", root, "\n"))
-  diagnostics = try({
+  sampling[['diagnostics']] = try({
     n_chains = length(diagnostic_files)
     diagnostic_data = lapply(diagnostic_files, read_stan_csv) %>%
-      lapply(process_diagnostics)
+      lapply(process_diagnostics) 
+    for (name in c('algorithm', 'position', 'momentum', 'gradient')) {
+      diagnostic_data[[name]] <- lapply(diagnostic_data, `[[`, name)
+    }
     diagnostic_data
   })
-  sampling[['diagnostics']] = diagnostics
   return(sampling)
 }
 
