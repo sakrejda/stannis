@@ -193,8 +193,6 @@ push_adapt = function(args) {
 #' @return argument string
 #' @export
 push_sample = function(args) {
-  if (!('sample' %in% names(args)))
-    return("")
   args = args[['sample']]
   stub = paste(
     push_simple(args, c('num_samples', 'num_warmup', 'save_warmup', 'thin')),
@@ -207,15 +205,20 @@ push_variational = function(...) stop("VI interface not implemented.")
 push_diagnose = function(...) stop("Diagnose interface not implemented.")
   
 push_method = function(args) {
-  stub = paste0("method=", args[['method']])
+  if ('method' %in% names(args)) {
+    stub = paste0("method=", args[['method']])
+  } else {
+    stub = paste0("method=", "sample")
+  }
+
   if (args[['method']] == 'sample') {
-    stub = paste(stub, push_sample(args[['sample']]))
+    stub = paste(stub, push_sample(args))
   } else if (args[['method']] == 'optimize') {
-    stub = paste(stub, push_optimize(args[['optimize']]))
+    stub = paste(stub, push_optimize(args))
   } else if (args[['method']] == 'variational') {
-    stub = paste(stub, push_variational(args[['variational']]))
+    stub = paste(stub, push_variational(args))
   } else if (args[['method']] == 'diagnose') {
-    stub = paste(stub, push_diagnose(args[['diagnose']]))
+    stub = paste(stub, push_diagnose(args))
   } else {
     msg = paste0("Method '", args[['method']], "'",
       " is not an option in CmdStan.")
@@ -239,9 +242,6 @@ construct_cmdline = function(...) {
   } else {
     binary = args[['binary']]
   }
-
-  if (!('method' %in% names(args)))
-    args[['method']] = 'sample'
 
   cmd = paste(binary, push_method(args), 
     push_simple(args, 'id'),
