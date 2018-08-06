@@ -234,7 +234,7 @@ push_method = function(args) {
 construct_cmdline = function(...) {
   args = list(...)
 
-  if (!('binary') %in% names(args)) {
+  if (!('binary' %in% names(args))) {
     stop("Arguments must include path to binary in 'binary'.")
   } else {
     binary = args[['binary']]

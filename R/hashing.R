@@ -46,11 +46,19 @@ create_hash <- function(args) {
     init_hash = ''
   }
 
-  arg_hash = openssl::sha256(args)  ## includes hash_salt
+  args[['target_dir']] <- NULL
+  args[['data_dir']] <- NULL
+  args[['model_dir']] <- NULL
+  args[['binary_dir']] <- NULL
+  args[['model_path']] <- NULL
+  arg_hash = args %>% unlist %>% openssl::sha256() %>% 
+    paste(collapse = ":")  ## includes hash_salt
 
   full_hash = openssl::sha256(x = paste(project_id_hash, 
     model_hash, binary_hash,
     data_hash, init_hash, arg_hash, sep = ':'))
+  if (length(full_hash) != 1) 
+    stop("Hash should be a length-1 character vector.")
   return(full_hash)
 }
 

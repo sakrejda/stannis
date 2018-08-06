@@ -20,13 +20,13 @@ write_record_table <- function(x, file) write.csv(x, file, row.names=FALSE)
 #' @export
 record_table <- function(args) {
   hash <- args[['hash']]
-  chain <- args[['chain']]
+  replicate <- args[['replicate']]
   record <- data.frame(
     project_id = args[['project_id']], 
     model_name = args[['model_name']],
     method = not_null(args[['method']]),
     data_file = not_null(args[['data']][['file']]),
-    chain = not_null(args[['sample']][['chain']])
+    replicate = not_null(args[['replicate']])
   )
   record_table_file <- file.path(args[['target_dir']], 'record_table.csv')
   if (file.exists(record_table_file)) {
@@ -46,7 +46,7 @@ record_table <- function(args) {
 #' @export
 register_run <- function(args) {
   hash <- args[['hash']]
-  chain <- args[['sample']][['chain']]
+  replicate <- args[['replicate']]
   registry_file <- file.path(args[['target_dir']], 'registry.yaml')
   if (file.exists(registry_file))
     registry <- yaml::yaml.load_file(input = registry_file)
@@ -54,7 +54,7 @@ register_run <- function(args) {
     registry <- list()
   if (is.null(registry[[hash]]))
     registry[[hash]] <- list()
-  registry[[hash]][[as.character(chain)]] <- args
+  registry[[hash]][[as.character(replicate)]] <- args
   record_table(args)
   yaml::write_yaml(x = registry, file = registry_file)
   return(NULL)  

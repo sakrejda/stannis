@@ -53,7 +53,7 @@ prepare_inputs = function(args) {
     msg <- paste0("Initial values file missing at: ", args[['init']])
     stop(msg)
   }
-  args[['hash']] <- create_hash(all_args[[i]])
+  args[['hash']] <- create_hash(args)
   return(args)
 }
 
@@ -80,7 +80,7 @@ load_args <- function(file) {
     args[['binary']] <- compile_model(args)
     args <- replicate_args(args)
     for (j in seq_along(args)) {
-      args[[i]] <- prepare_inputs(args[[i]])
+      args[[j]] <- prepare_inputs(args[[j]])
     }
     all_args <- c(all_args, args)
   }
@@ -123,7 +123,6 @@ finalize_args <- function(args) {
     args[['output']][[output]] <- file.path(args[['fit_path']], args[['output']][[output]])
   }
 
-
   if (!is.null(args[['data']]) && !is.null(args[['data']][['file']])) {
     if (file.exists(args[['data']][['file']])) {
       file.copy(from = args[['data']][['file']], 
@@ -140,11 +139,11 @@ finalize_args <- function(args) {
   if (is_init_file && !file.exists(args[['init']])) {
     msg <- paste0("Initial values file missing at: ", args[['init']])
     stop(msg)
-  } else {
+  } else if (is_init_file && file.exists(args[['init']])) {
     file.copy(from = args[['init']],
 	      to = file.path(args[['fit_path']], basename(args[['init']])))
-  }
+  } 
+  args[['command']] <- do.call(what = construct_cmdline, args = args)
   yaml::write_yaml(args, file = file.path(args[['fit_path']], "finalized.yaml"))
-  register_run(args)
   return(args)
 }

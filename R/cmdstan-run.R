@@ -5,23 +5,19 @@
 #' @return NULL, run as a system command.
 #' @export
 run_model_cmd <- function(...) {
-  args_in <- finalize_args(list(...))
-  cmd <- do.call(what = construct_cmdline, args = args_in) %>% 
-    strsplit('[ ]+') %>% `[[`(1)
-  args_in[['command']] <- cmd
-  binary <- cmd[1]
-  args <- cmd[2:length(cmd)]
-  out <- args_in[['output']][['terminal']]
-  err <- args_in[['output']][['error']]
-  if (isTRUE(args_in[['wait']]))
+  args <- finalize_args(list(...))
+  register_run(args)
+  cmd = args[['command']] %>% strsplit('[ ]+') %>% `[[`(1)
+  cmd_binary <- cmd[1]
+  cmd_args <- cmd[2:length(cmd)]
+  cmd_out <- args[['output']][['terminal']]
+  cmd_err <- args[['output']][['error']]
+  if (isTRUE(args[['wait']]))
     wait = TRUE
   else
     wait = FALSE
-  if (isTRUE(args_in[['existing_output']]))
-    return(args_in)
-  else
-    system2(command=binary, args=args, stdout=out, stderr=err, wait=wait)
-  return(args_in)
+  system2(command=cmd_binary, args=cmd_args, stdout=cmd_out, stderr=cmd_err, wait=wait)
+  return(args)
 }
 
 #' Run a set of CmdStan runs based on a set of arg-trees
