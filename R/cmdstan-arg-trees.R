@@ -79,7 +79,9 @@ load_args <- function(file) {
     args <- merge_trees(defaults, control[['runs']][[i]])
     args[['binary']] <- compile_model(args)
     args <- replicate_args(args)
-    args <- prepare_inputs(args)
+    for (j in seq_along(args)) {
+      args[[i]] <- prepare_inputs(args[[i]])
+    }
     all_args <- c(all_args, args)
   }
   return(all_args)
