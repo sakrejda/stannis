@@ -4,7 +4,7 @@
 \alias{register_run}
 \title{Record that a run is being started}
 \usage{
-register_run(args)
+register_run(path, args)
 }
 \arguments{
 \item{args}{arg-tree object (list)}

@@ -62,3 +62,14 @@ create_hash <- function(args) {
   return(full_hash)
 }
 
+#' List all hashes under a target directory
+#'
+#' @param target_dir directory to search for hashes
+#' @return character vector of hashes
+#' @export
+index_hashes = function(target_dir) dir(path = target_dir,
+  pattern = '^([a-z0-9]{64})$', full.names = FALSE, recursive = FALSE)
+
+
+
+
