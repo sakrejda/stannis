@@ -6,17 +6,16 @@
 read_stan_csv = function(file) {
   file = normalizePath(file)
   os = stannis:::read_cmdstan_csv(file)
+  os[['index']] = NULL
+  os[['n_col']] = NULL
   os[['n_iterations']] = length(os[['parameters']][[1]])
+  d = lapply(os[['dimensions']], function(x) if (length(x) == 0) 1 else x)
+  names(d) = os[['p_names']]
   names(os[['parameters']]) = os[['p_names']]
-  names(os[['index']]) = os[['p_names']]
-  names(os[['dimensions']]) = os[['p_names']]
-  names(os[['n_dim']]) = os[['p_names']]
   for (name in os[['p_names']]) {
-    os[['parameters']][[name]] = array(
-      data = os[['parameters']][[name]],
-      dim = c(os[['n_iterations']], os[['dimensions']][[name]])
-    )
-  }    
+    dim(os[['parameters']][[name]]) <- c(os[['n_iterations']], d[[name]])
+  }
+  os[['dimensions']] = NULL
   return(os)
 }
 
@@ -58,26 +57,26 @@ process_diagnostics = function(x) {
 
 #' Read a set of Stan files and their metadata
 #'
-#' @param root directory to read from
+#' @param search directories to read from
 #' @param pattern pattern of filenames to read
 #' @return a processed and merged list of files.
 #' @export 
-read_file_set = function(root='.', control = 'finalized.yaml', 
+read_file_set = function(search='.', control = 'finalized.yaml', 
   samples = 'output.csv', diagnostics = 'diagnostics.csv', ...
 ) {
   control_files = find_file(root, control, ...)
+  metadata = lapply(control_files, yaml::yaml.load_file)
   if (length(control_files) == 0)
     control_files = NULL
   csv_files = find_file(root, samples, ...)
+  n_chains = length(csv_files)
   if (length(csv_files) == 0)
     stop(paste0("Sampling matching the pattern were not found at root: ", root, "\n"))
 
-    n_chains = length(csv_files)
-    metadata = lapply(control_files, yaml::yaml.load_file)
-    grouping = list()
-    for ( i in 1:n_chains) {
-      n_iterations = metadata[[i]][['sample']][['num_warmup']] + 
-	      metadata[[i]][['sample']][['num_samples']]
+  grouping = list()
+  for ( i in 1:n_chains) {
+    n_iterations = metadata[[i]][['sample']][['num_warmup']] + 
+      metadata[[i]][['sample']][['num_samples']]
       n_warmup = metadata[[i]][['sample']][['num_warmup']]
       grouping[[i]] = data.frame(
         iteration = 1:n_iterations, chain = i, 
