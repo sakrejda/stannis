@@ -61,10 +61,15 @@ process_diagnostics = function(x) {
 #' @param pattern pattern of filenames to read
 #' @return a processed and merged list of files.
 #' @export 
-read_file_set = function(search='.', control = 'finalized.yaml', 
+read_file_set = function(root='.', hashes = NULL, control = 'finalized.yaml', 
   samples = 'output.csv', diagnostics = 'diagnostics.csv', ...
 ) {
+  if (is.null(hashes)) 
+    stop("Must indicate which hashes to include in a comparable run.")
+  index = data.frame(hash = hashes)
   control_files = find_file(root, control, ...)
+
+
   metadata = lapply(control_files, yaml::yaml.load_file)
   if (length(control_files) == 0)
     control_files = NULL
