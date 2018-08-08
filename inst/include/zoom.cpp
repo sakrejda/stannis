@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <iomanip>
 
 #include <tuple>
@@ -82,28 +83,22 @@ header_t read_header(std::string& line) {
  * @param h, const header tuple reference with indexing info.
  * @param p, reference to parameter_t to modify with new samples.
  * */ 
-void read_parameters(std::string& line, const header_t& h, parameter_t& p) {
-  auto head = line.begin();
-  auto tail = line.begin();
+bool read_parameters(std::string& line, const header_t& h, parameter_t& p) {
+  std::stringstream data_stream(line);
 
-  int n_parameters = 0;
-  std::vector<int> n_dim;
-  std::vector<std::vector<int>> index;
-  std::tie(std::ignore, n_parameters, std::ignore, n_dim, std::ignore, index) = h;
+  int n_parameters = std::get<1>(h);
+  std::vector<std::vector<int>> index = std::get<5>(h);
   p.resize(n_parameters);
  
-  std::vector<double> x;
-  while (tail != line.end()) {
-    tail = std::find(head, line.end(), ',');
-    x.push_back(std::stod(std::string(head, std::find(head, tail, ','))));
-    if (tail != line.end())
-      head = tail + 1;
-  } 
+  std::vector<double> x = read_csv_vector(line);
+  if (x.size() < n_parameters)
+    return false;
   for (unsigned int i = 0; i < index.size(); ++i) {
     for (unsigned int j = 0; j < index[i].size(); j++) {
       p[i].push_back(x[index[i][j]]);  
     }
   }
+  return true;
 }
 
 /* Reshapes parameters from [parameter, idx x iteration] to
@@ -144,15 +139,7 @@ mm_t read_mass_matrix(std::ifstream& f) {
 
   std::getline(f, line);
   std::getline(f, line);
-  head = line.begin() + 1; // Skip '#'
-  tail = line.begin() + 1;
-  std::vector<double> mm;
-  while (tail != line.end()) {
-    tail = std::find(head, line.end(), ',');
-    mm.push_back(std::stod(std::string(head, std::find(head, tail, ','))));
-    if (tail != line.end())
-      head = tail + 1;
-  } 
+  std::vector<double> mm = read_csv_vector(line.substr(1));
   return std::make_tuple(step_size, mm);
 }
 

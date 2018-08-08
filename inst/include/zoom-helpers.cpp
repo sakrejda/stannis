@@ -62,4 +62,16 @@ bool is_mm_start(std::string& s) {
   return is_comment(s) && s.find("Adaptation terminated") != std::string::npos;
 }
 
+std::vector<double> read_csv_vector(const std::string& s) {
+  std::stringstream data_stream(s);
+  std::vector<double> x;
+  while (data_stream.good()) {
+    char comma;
+    double value;
+    data_stream >> value >> comma;
+    x.push_back(value);
+  } 
+  return x;
+}
+
 #endif
