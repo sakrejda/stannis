@@ -1,6 +1,7 @@
 #include <fstream>
 #include <cerrno>
 #include <system_error>
+#include <tuple>
 
 #include <zoom.cpp>
 #include <Rcpp.h>
@@ -27,6 +28,8 @@ Rcpp::List read_cmdstan_csv(Rcpp::StringVector file) {
     Rcpp::Named("n_dim") = std::get<3>(header),
     Rcpp::Named("dimensions") = std::get<4>(header),
     Rcpp::Named("index") = std::get<5>(header),
+    Rcpp::Named("offsets") = std::get<6>(header),
+    Rcpp::Named("sizes") = std::get<7>(header),
     Rcpp::Named("parameters") = parameters, 
     Rcpp::Named("timing") = timing,
     Rcpp::Named("step_size") = std::get<0>(mass_matrix),

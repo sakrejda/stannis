@@ -18,9 +18,11 @@ std::string header_summary(header_t& h) {
   std::vector<int> n_dim;
   std::vector<std::vector<int>> dimensions;
   std::vector<std::vector<int>> index;
+  std::vector<int> offsets;
+  std::vector<int> sizes;
   std::stringstream s;
 
-  std::tie(n_col, n_parameters, names, n_dim, dimensions, index) = h;
+  std::tie(n_col, n_parameters, names, n_dim, dimensions, index, offsets, sizes) = h;
   s << "number of columns: " << n_col << ", number of parameters: " << n_parameters << std::endl;
   for (int i = 0; i < n_parameters; ++i) {
     s << "parameter: " << names[i] << ", number of dimensions: " << n_dim[i];

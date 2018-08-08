@@ -44,6 +44,8 @@ header_t read_header(std::string& line) {
   std::vector<int> n_dim;
   std::vector<std::vector<int>> dimensions;
   std::vector<std::vector<int>> index;
+  std::vector<int> offsets;
+  std::vector<int> sizes;
 
   auto head = line.begin();
   auto tail = line.begin();
@@ -74,7 +76,11 @@ header_t read_header(std::string& line) {
     if (tail != line.end())
       head = tail + 1;
   }
-  return std::make_tuple(n_col, n_parameters, names, n_dim, dimensions, index);
+  for (iv_size_t i = 0; i < index.size(); ++i) {
+    offsets.push_back(index[i][0]);
+    sizes.push_back(index[i].size());
+  }
+  return std::make_tuple(n_col, n_parameters, names, n_dim, dimensions, index, offsets, sizes);
 }
 
 /* Must handle all non-commented lines after the header.
@@ -109,15 +115,15 @@ bool read_parameters(std::string& line, const header_t& h, parameter_t& p) {
 void reshape_parameters(const header_t& h, parameter_t& p) {
   int n_parameters = p.size();
   std::vector<std::vector<int>> dimensions = std::get<4>(h);
-  for (std::vector<double>::size_type i = 0; i < p.size(); ++i) {
-    std::vector<double>::size_type n_entries = std::accumulate(
-      dimensions[i].begin(), dimensions[i].end(), 1, std::multiplies<std::vector<double>::size_type>());
-    std::vector<double>::size_type n_iterations = p[i].size() / n_entries;
+  for (dv_size_t i = 0; i < p.size(); ++i) {
+    dv_size_t n_entries = std::accumulate(
+      dimensions[i].begin(), dimensions[i].end(), 1, std::multiplies<dv_size_t>());
+    dv_size_t n_iterations = p[i].size() / n_entries;
     std::vector<double> x(p[i].size());
-    for (std::vector<double>::size_type j = 0; j < x.size(); ++j) {
-      std::vector<double>::size_type k = j % n_iterations;
-      std::vector<double>::size_type m = j / n_iterations;
-      std::vector<double>::size_type n = k * n_entries + m;  
+    for (dv_size_t j = 0; j < x.size(); ++j) {
+      dv_size_t k = j % n_iterations;
+      dv_size_t m = j / n_iterations;
+      dv_size_t n = k * n_entries + m;  
       x[j] = p[i][n];
     }
     p[i] = x;
