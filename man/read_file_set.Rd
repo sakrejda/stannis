@@ -4,11 +4,11 @@
 \alias{read_file_set}
 \title{Read a set of Stan files and their metadata}
 \usage{
-read_file_set(root = ".", control = "finalized.yaml",
+read_file_set(root = ".", hashes = NULL, control = "finalized.yaml",
   samples = "output.csv", diagnostics = "diagnostics.csv", ...)
 }
 \arguments{
-\item{root}{directory to read from}
+\item{search}{directories to read from}
 
 \item{pattern}{pattern of filenames to read}
 }

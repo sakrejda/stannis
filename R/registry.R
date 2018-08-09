@@ -69,7 +69,7 @@ insert_in = function(args, registry) {
 register_run = function(path, args) {
   registry_file = file.path(args[['target_dir']], 'registry.yaml')
   registry = load_registry(registry_file)
-  add_key(registry, args)
+  insert_in(args, registry)
   save_registry(registry, registry_file)
   return(registry_file)  
 }

@@ -91,6 +91,11 @@ find_run_files = function(root, control = 'finalized.yaml',
   return(o)
 }
 
+#' Find and remove run directories with no output file.
+#' 
+#' @param root root path to search under
+#' @return hashes of removed directories
+#' @export
 remove_failed_runs = function(root, ...) {
   runs = find_run_files(root, ...)
   failed_runs = runs[['hash']][is.na(runs[['output']])]
@@ -102,4 +107,44 @@ remove_failed_runs = function(root, ...) {
   }
   return(failed_runs)
 }
+
+monitor = function(root, split_complete = TRUE, ...) {
+  rf = find_run_files(root)
+  fs = dir(path = file.path(root, rf$hash), 
+    pattern = 'terminal.txt', full.names = TRUE)
+  so = order(file.info(fs)$ctime)
+  completion = mapply(FUN = function(f, h) {
+    ls = readLines(f)
+    ls = ls[grepl('^Iteration:', ls)]; 
+    lsl = length(ls); 
+    if (length(lsl) == 0) 
+      return(list(hash = h, complete = -1, n_done = 0, n_iterations = NA))
+    n_iterations = gsub('(.*) ([0-9]+)( / )([0-9]+) (.*)', '\\4', ls[1]) %>% as.numeric; 
+    n_done = gsub('(.*) ([0-9]+)( / )([0-9]+) (.*)', '\\2', ls[lsl]) %>% as.numeric 
+    if (n_done == n_iterations)
+      return(list(hash = h, complete = 1, n_done = n_done, n_iterations = n_iterations))
+    else
+      return(list(hash = h, complete = 0, n_done = n_done, n_iterations = n_iterations))  
+  }, f = fs, h = find_hash(fs), SIMPLIFY = FALSE, USE.NAMES = FALSE)
+  completion = do.call(rbind, sapply(completion, data.frame, simplify = FALSE))[so,]
+  return(completion)
+}
+
+print_monitor = function(completion) {
+  w = options("width")[['width']] - 2
+  s_done = trunc(completion[,'n_done'] / completion[,'n_iterations'] * w)
+  s_todo = w - s_done
+  done = sapply(s_done, rep, x='*') %>% sapply(paste0, collapse = '')
+  todo = sapply(s_todo, rep, x='-') %>% sapply(paste0, collapse = '')
+  msg = paste0("[", done, todo, "]\n")
+  for (i in seq_along(msg)) {
+    cat(paste("Hash:", completion[['hash']][i], "\n"))
+    cat(msg[i])
+    cat("\n")
+  }
+  return(NULL)
+}
+
+
+
 
