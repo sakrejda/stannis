@@ -61,23 +61,33 @@ find_run_files = function(root, control = 'finalized.yaml',
 ) {
   full_paths = dir(path = root, pattern = paste(control, output, diagnostics, sep = '|'), full.names = TRUE, recursive = TRUE)
   hash = vector(mode = 'character', length = length(full_paths))
-  name = vector(mode = 'character', length = length(full_paths))
-  path = vector(mode = 'character', length = length(full_paths))
-  type = vector(mode = 'character', length = length(full_paths))
-  for (i in seq_along(full_paths)) {
-    hash[i] = find_hash(full_paths[i])
-    name[i] = basename(full_paths[i])
-    path[i] = dirname(full_paths[i])
-    if (name[i] %in% control)
-      type[i] = "control"
-    else if (name[i] %in% output)
-      type[i] = "output"
-    else if (name[i] %in% diagnostics)
-      type[i] = "diagnostics"
+  for (i in seq_along(full_paths)) 
+    hash[i] = find_hash(dirname(full_paths[i]))
+  hash = unique(hash)
+  o = list()
+  for (h in hash) {
+    o[[h]] = list()
+    o[[h]][['hash']] = h
+    is_hash = find_hash(dirname(full_paths)) == h 
+    is_control = grepl(pattern = control, x = basename(full_paths)) & is_hash
+    is_output = grepl(pattern = output, x = basename(full_paths)) & is_hash
+    is_diagnostics = grepl(pattern = diagnostics, x = basename(full_paths)) & is_hash
+    if (any(is_control))
+      o[[h]][['control']] = basename(full_paths)[is_control]
     else
-      type[i] = "cruft"
+      o[[h]][['control']] = NA
+    if (any(is_output))
+      o[[h]][['output']] = basename(full_paths)[is_output]
+    else
+      o[[h]][['output']] = NA
+    if (any(is_diagnostics))
+      o[[h]][['diagnostics']] = basename(full_paths)[is_diagnostics]
+    else
+      o[[h]][['diagnostics']] = NA
+    o[[h]] = do.call(data.frame, o[[h]])
   }
-  return(data.frame(hash = hash, name = name, path = path, type = type))
+  o = do.call(rbind, o)
+  return(o)
 }
 
 

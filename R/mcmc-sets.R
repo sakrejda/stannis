@@ -66,9 +66,7 @@ read_file_set = function(root='.', hashes = NULL, control = 'finalized.yaml',
 ) {
   if (is.null(hashes)) 
     stop("Must indicate which hashes to include in a comparable run.")
-  index = data.frame(hash = hashes)
-  control_files = find_file(root, control, ...)
-
+  index = find_run_files(root, control, output, diagnostics)
 
   metadata = lapply(control_files, yaml::yaml.load_file)
   if (length(control_files) == 0)
