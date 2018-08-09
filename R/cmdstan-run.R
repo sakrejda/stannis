@@ -9,7 +9,7 @@ run_model_cmd <- function(...) {
   if (!args[['run']]) {
     return(args)
   }
-  register_run(args)
+  register_run(path = args[['target_dir']], args)
   cmd = args[['command']] %>% strsplit('[ ]+') %>% `[[`(1)
   cmd_binary <- cmd[1]
   cmd_args <- cmd[2:length(cmd)]

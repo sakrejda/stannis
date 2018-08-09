@@ -87,7 +87,19 @@ find_run_files = function(root, control = 'finalized.yaml',
     o[[h]] = do.call(data.frame, o[[h]])
   }
   o = do.call(rbind, o)
+  rownames(o) = as.character(1:nrow(o))
   return(o)
 }
 
+remove_failed_runs = function(root, ...) {
+  runs = find_run_files(root, ...)
+  failed_runs = runs[['hash']][is.na(runs[['output']])]
+  failed_paths = file.path(root, failed_runs)
+  if (length(failed_runs) != 0) {
+    files = dir(path = failed_paths, full.names=TRUE)
+    file.remove(files)
+    file.remove(failed_paths, recursive = TRUE)
+  }
+  return(failed_runs)
+}
 
