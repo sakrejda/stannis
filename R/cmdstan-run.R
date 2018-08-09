@@ -6,6 +6,9 @@
 #' @export
 run_model_cmd <- function(...) {
   args <- finalize_args(list(...))
+  if (!args[['run']]) {
+    return(args)
+  }
   register_run(args)
   cmd = args[['command']] %>% strsplit('[ ]+') %>% `[[`(1)
   cmd_binary <- cmd[1]

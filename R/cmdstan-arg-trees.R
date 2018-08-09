@@ -109,8 +109,12 @@ finalize_args <- function(args) {
   if (is.null(args[['target_dir']]))
     args[['target_dir']] <- getwd()
 
-  if (!dir.exists(args[['target_dir']]))
+  if (!dir.exists(args[['target_dir']])) {
     dir.create(args[['target_dir']], recursive = TRUE)
+    args[['run']] = TRUE
+  } else {
+    args[['run']] = FALSE
+  }
   args[['fit_path']] <- file.path(args[['target_dir']], args[['hash']])
   if (!dir.exists(args[['fit_path']]))
     dir.create(args[['fit_path']], recursive = TRUE)
