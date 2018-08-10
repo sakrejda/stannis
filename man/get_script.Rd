@@ -6,6 +6,11 @@
 \usage{
 get_script(job, logger)
 }
+\arguments{
+\item{job}{job to get script from}
+
+\item{logger}{used to log output}
+}
 \value{
 path to job script
 }

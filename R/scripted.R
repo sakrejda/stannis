@@ -18,7 +18,7 @@ logger <- function(log_file = tempfile()) {
 #'
 #' @param instructions, loaded from .yaml file (list)
 #' @param i pull out i'th job
-#' @param logger
+#' @param logger used to log output
 #' @return job
 #' @export
 get_job <- function(instructions, i, logger) {
@@ -29,8 +29,8 @@ get_job <- function(instructions, i, logger) {
 
 #' Retrieve the script to run on.
 #'
-#' @param job
-#' @param logger
+#' @param job job to get script from
+#' @param logger used to log output
 #' @return path to job script
 #' @export
 get_script <- function(job, logger) {

@@ -10,6 +10,8 @@ get_job(instructions, i, logger)
 \item{instructions, }{loaded from .yaml file (list)}
 
 \item{i}{pull out i'th job}
+
+\item{logger}{used to log output}
 }
 \value{
 job
