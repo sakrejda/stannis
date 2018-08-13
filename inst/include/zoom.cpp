@@ -83,6 +83,89 @@ header_t read_header(std::string& line) {
   return std::make_tuple(n_col, n_parameters, names, n_dim, dimensions, index, offsets, sizes);
 }
 
+/* Write a header in an (easily seekable) binary format.
+ *
+ * @param header_t tuple with header data.
+ * @param file_path boost::filesystem::path to write to
+ * @return bool, 0 success 1 on failure
+ */
+bool write_header(
+  header_t& h, 
+  boost::filesystem::path p,
+  boost::uuids::uuid tag
+) {
+  boost::filesystem::fstream storage_stream;
+  storage_stream.open(p, std::ios::out);
+
+  // Magic string
+  std::string magic = "Stantastic";
+  storage_stream.write((char*)(&magic), magic.length());
+
+  // Header section
+  // File format version  and Stan version
+  std::uint_least32_t file_version= 1;
+  std::uint_least16_t major_stan = 2;
+  std::uint_least16_t minor_stan = 17;
+  std::uint_least16_t patch_stan = 3;
+  storage_stream.write((char*)(&file_version), sizeof(file_version));
+  storage_stream.write((char*)(&major_stan), sizeof(major_stan));
+  storage_stream.write((char*)(&minor_stan), sizeof(minor_stan));
+  storage_stream.write((char*)(&patch_stan), sizeof(patch_stan));
+
+  // UID
+  std::vector<char> v(tag.size());
+  std::copy(tag.begin(), tag.end(), v.begin());
+  for (int i = 0; i < tag.size(); ++i) {
+    storage_stream.write(&v[0], sizeof(char));
+  }
+
+  // Contents section
+  std::streampos n_iterations_position = storage_stream.tellp();
+  std::uint_least32_t n_iterations = 0;    // modified later, leave space
+  storage_stream.write(&n_iterations, sizeof(std::uint_least32_t));
+  std::uint_least32_t n_parameters = std::get<1>(h);
+  storage_stream.write(&n_parameters, sizeof(std::uint_least32_t));
+  
+  // Comment
+  std::string comment = "Stan is Stantastic.";
+  storage_stream.write((char*)(&comment[0]), comment.length());
+
+  // Name section
+  std::uint_least64_t name_section_offset(storage_stream.tellp());  // modified later, leave space
+  storage_stream.write(&name_section_offset, sizeof(name_section_offset));
+  std::vector<string>& names = std::get<2>(h);
+  for (auto i = 0; i < names.size(); ++i) {
+    std::uint_least16_t name_offset = names[i].length();
+    storage_stream.write((char*)(&name_offset), sizeof(name_offset));
+    storage_stream.write((char*)(&names[i][0]), name_offset);
+  }
+  std::streampos name_section_end = storage_stream.tellp();
+  storage_stream.seekp(name_section_offset);  // use it before you loose it
+  name_section_offset = name_section_end - name_section_offset;
+  storage_stream.write((char*)(&name_section_offset), sizeof(name_section_offset));
+  storage_stream.seekp(name_section_end);
+
+  // Dimensions seaction
+  std::uint_least64_t dimension_section_offset(storage_stream.tellp()); // modified later
+  std::vector<int> ndim = std::get<3>(h);
+  std::vector<std::vector<int>> dims = std::get<4>(h);
+  for (auto i = 0; i < ndim.size(); ++i) {
+    storage_stream.write((char*)(&ndim[i]), sizeof(ndim[i]));
+    for (auto d = 0; d < ndim[i]; ++d) {
+      storage_stream.write((char*)(&dims[i][d]), sizeof(dims[i][d]));
+    }
+  }
+  std::streampos dimension_section_end = storage_stream.tellp();
+  storage_stream.seekp(dimension_section_offset); // use it before you loose it
+  dimension_section_offset = dimension_section_end - dimension_section_offset;
+  storage_stream.write((char*)(&dimension_section_offset), sizeof(dimension_section_offset));
+  storage_stream.seekp(dimension_section_end);
+
+  // Samples section
+
+  storage_stream.close();
+}
+
 /* Must handle all non-commented lines after the header.
  *
  * @param line, the line (std::string reference) to read.
