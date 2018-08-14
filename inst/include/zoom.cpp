@@ -12,6 +12,7 @@
 
 #include <zoom-t.hpp>
 #include <zoom-helpers.cpp>
+#include <write-header.hpp>
 
 /* Helper function that takes iterators to a CmdStan .csv format 
  * column and adjusts the vector of dimensions to be consistent
@@ -30,58 +31,6 @@ void update_dimensions(std::string::iterator head, std::string::iterator end, st
   }
 }
 
-/* Handle header lines only.  Calculate the number of columns,
- * parameters, names, and structure all in one pass.
- *
- * @param line std::string& representing the header
- * @return header_t tuple with number of column, parameters, names and
- *                  dimensions/index to columns.
- */
-header_t read_header(std::string& line) {
-  int n_col = 0;
-  int n_parameters = 0;
-  std::vector<std::string> names;
-  std::vector<int> n_dim;
-  std::vector<std::vector<int>> dimensions;
-  std::vector<std::vector<int>> index;
-  std::vector<int> offsets;
-  std::vector<int> sizes;
-
-  auto head = line.begin();
-  auto tail = line.begin();
-
-  std::string current_name;
-  std::string last_name = "";
-  while (tail != line.end()) {
-    tail = std::find(head, line.end(), ',');
-    n_col++;
-    current_name = std::string(head, std::find(head, tail, '.'));
-
-    if (current_name != last_name) {
-      n_parameters++;
-      names.push_back(current_name); 
-      int current_dim = std::count(head, tail, '.');
-      n_dim.push_back(current_dim);
-      std::vector<int> dim(0);
-      for (int i = 0; i < current_dim; ++i) {
-        dim.push_back(1);
-      }
-      dimensions.push_back(dim);
-      index.push_back({n_col - 1});
-    } else {
-      index[index.size() - 1].push_back(n_col - 1);
-      update_dimensions(head, tail, dimensions[dimensions.size() - 1]); 
-    }
-    last_name = current_name;
-    if (tail != line.end())
-      head = tail + 1;
-  }
-  for (iv_size_t i = 0; i < index.size(); ++i) {
-    offsets.push_back(index[i][0]);
-    sizes.push_back(index[i].size());
-  }
-  return std::make_tuple(n_col, n_parameters, names, n_dim, dimensions, index, offsets, sizes);
-}
 
 /* Write a header in an (easily seekable) binary format.
  *
@@ -97,53 +46,14 @@ bool write_header(
   boost::filesystem::fstream storage_stream;
   storage_stream.open(p, std::ios::out);
 
-  // Magic string
-  std::string magic = "Stantastic";
-  storage_stream.write((char*)(&magic), magic.length());
-
-  // Header section
-  // File format version  and Stan version
-  std::uint_least32_t file_version= 1;
-  std::uint_least16_t major_stan = 2;
-  std::uint_least16_t minor_stan = 17;
-  std::uint_least16_t patch_stan = 3;
-  storage_stream.write((char*)(&file_version), sizeof(file_version));
-  storage_stream.write((char*)(&major_stan), sizeof(major_stan));
-  storage_stream.write((char*)(&minor_stan), sizeof(minor_stan));
-  storage_stream.write((char*)(&patch_stan), sizeof(patch_stan));
-
-  // UID
-  std::vector<char> v(tag.size());
-  std::copy(tag.begin(), tag.end(), v.begin());
-  for (int i = 0; i < tag.size(); ++i) {
-    storage_stream.write(&v[0], sizeof(char));
-  }
-
-  // Contents section
-  std::streampos n_iterations_position = storage_stream.tellp();
-  std::uint_least32_t n_iterations = 0;    // modified later, leave space
-  storage_stream.write(&n_iterations, sizeof(std::uint_least32_t));
-  std::uint_least32_t n_parameters = std::get<1>(h);
-  storage_stream.write(&n_parameters, sizeof(std::uint_least32_t));
+  write_stantastic_header(storage_stream, tag);
+  write_description(storage_stream, std::get<1>(h)); 
+  write_comment(storage_stream, "");
   
-  // Comment
-  std::string comment = "Stan is Stantastic.";
-  storage_stream.write((char*)(&comment[0]), comment.length());
-
-  // Name section
   std::uint_least64_t name_section_offset(storage_stream.tellp());  // modified later, leave space
-  storage_stream.write(&name_section_offset, sizeof(name_section_offset));
-  std::vector<string>& names = std::get<2>(h);
-  for (auto i = 0; i < names.size(); ++i) {
-    std::uint_least16_t name_offset = names[i].length();
-    storage_stream.write((char*)(&name_offset), sizeof(name_offset));
-    storage_stream.write((char*)(&names[i][0]), name_offset);
-  }
-  std::streampos name_section_end = storage_stream.tellp();
-  storage_stream.seekp(name_section_offset);  // use it before you loose it
-  name_section_offset = name_section_end - name_section_offset;
-  storage_stream.write((char*)(&name_section_offset), sizeof(name_section_offset));
-  storage_stream.seekp(name_section_end);
+  write_names(storage_stream, std::get<2>(h));
+  insert(storage_stream, name_section_offset, storage_stream.tellp() - name_section_offset);
+
 
   // Dimensions seaction
   std::uint_least64_t dimension_section_offset(storage_stream.tellp()); // modified later
