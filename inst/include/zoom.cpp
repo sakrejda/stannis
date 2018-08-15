@@ -32,49 +32,6 @@ void update_dimensions(std::string::iterator head, std::string::iterator end, st
 }
 
 
-/* Write a header in an (easily seekable) binary format.
- *
- * @param header_t tuple with header data.
- * @param file_path boost::filesystem::path to write to
- * @return bool, 0 success 1 on failure
- */
-bool write_header(
-  header_t& h, 
-  boost::filesystem::path p,
-  boost::uuids::uuid tag
-) {
-  boost::filesystem::fstream storage_stream;
-  storage_stream.open(p, std::ios::out);
-
-  write_stantastic_header(storage_stream, tag);
-  write_description(storage_stream, std::get<1>(h)); 
-  write_comment(storage_stream, "");
-  
-  std::uint_least64_t name_section_offset(storage_stream.tellp());  // modified later, leave space
-  write_names(storage_stream, std::get<2>(h));
-  insert(storage_stream, name_section_offset, storage_stream.tellp() - name_section_offset);
-
-
-  // Dimensions seaction
-  std::uint_least64_t dimension_section_offset(storage_stream.tellp()); // modified later
-  std::vector<int> ndim = std::get<3>(h);
-  std::vector<std::vector<int>> dims = std::get<4>(h);
-  for (auto i = 0; i < ndim.size(); ++i) {
-    storage_stream.write((char*)(&ndim[i]), sizeof(ndim[i]));
-    for (auto d = 0; d < ndim[i]; ++d) {
-      storage_stream.write((char*)(&dims[i][d]), sizeof(dims[i][d]));
-    }
-  }
-  std::streampos dimension_section_end = storage_stream.tellp();
-  storage_stream.seekp(dimension_section_offset); // use it before you loose it
-  dimension_section_offset = dimension_section_end - dimension_section_offset;
-  storage_stream.write((char*)(&dimension_section_offset), sizeof(dimension_section_offset));
-  storage_stream.seekp(dimension_section_end);
-
-  // Samples section
-
-  storage_stream.close();
-}
 
 /* Must handle all non-commented lines after the header.
  *
@@ -196,23 +153,6 @@ std::tuple<header_t, parameter_t, mm_t, timing_t> read_samples(std::ifstream& f)
   reshape_parameters(header, parameters);
   return std::make_tuple(header, parameters, mm, tt);
 }
-
-/* Test program. */
-//int main(int argc, char* argv[]) {
-//  if(argc != 2) {
-//    std::cerr << "provide one argument." << std::endl;
-//    return 1;
-//  }
-//
-//  header_t header;
-//  parameter_t parameters;
-//  std::ifstream f(argv[1]);
-//  std::tie(header, parameters) = read_samples(f);
-//
-//  std::cout << header_summary(header);
-//  return 0;
-//}
-
 
 
 

@@ -30,6 +30,20 @@ namespace stannis {
     return;
   }
 
+  template <class S>
+  void write_dimensions(
+    S & stream,
+    const std::vector<std::vector<int>> & dimensions
+  ) {
+    for(const std::vector<int> & dims : dimensions) {
+      int ndim dims.size();
+      stream.write((char*)(&ndim), sizeof(ndim));
+      for (const int d : dims)
+	stream.write((char*)(&d), sizeof(int));
+    }
+    return;
+  }
+
 }
 
 
