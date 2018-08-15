@@ -26,6 +26,13 @@ namespace stannis {
     boost::uuids::uuid tag
   );
 
+  /* Streaming re-write of text header line to output file. */
+  rewrite_header(
+    std::string& line,
+    boost::filesystem::path p,
+    boost::uuids::uuid tag
+  );
+
 }
 
 
