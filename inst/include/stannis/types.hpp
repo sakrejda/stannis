@@ -1,5 +1,5 @@
-#ifndef ZOOM_T_CPP
-#define ZOOM_T_CPP
+#ifndef TYPES_HPP
+#define TYPES_HPP
 
 #include <tuple>
 #include <vector>
@@ -7,7 +7,6 @@
 
 typedef std::vector<double>::size_type dv_size_t;
 typedef std::vector<double>::size_type iv_size_t;
-
 
 // 0: n_col
 // 1: n_parameters (named), 

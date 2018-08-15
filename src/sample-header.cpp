@@ -1,5 +1,5 @@
-#include <zoom-t.hpp>
-#include <sample-header.hpp>
+#include <stannis/types.hpp>
+#include <stannis/sample-header.hpp>
 
 #include <boost/uuids/uuid.hpp>
 
@@ -9,13 +9,6 @@
 #include <string>
 
 namespace stannis {
-  /* Handle header lines only.  Calculate the number of columns,
-   * parameters, names, and structure all in one pass.
-   *
-   * @param line std::string& representing the header
-   * @return header_t tuple with number of column, parameters, names and
-   *                  dimensions/index to columns.
-   */
   header_t read_header(std::string& line) {
     int n_col = 0;
     int n_parameters = 0;
