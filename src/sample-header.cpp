@@ -86,7 +86,9 @@ namespace stannis {
     // Samples section
   
     storage_stream.close();
+    return true;
   }
+
 
 }
 
