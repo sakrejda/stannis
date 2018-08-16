@@ -18,30 +18,6 @@
 
 namespace stannis {
 
-  /* Helper function that takes iterators to a CmdStan .csv format 
-   * column and adjusts the vector of dimensions to be consistent
-   * with the name (usually upping the dimension sizes.
-   *
-   * @param head beginning of column name string
-   * @param end one-past-end of column name string
-   * @rparam dim vector of dimension sizes
-   */
-  void update_dimensions(
-    std::string::iterator head, 
-    std::string::iterator end, 
-    std::vector<int>& dim
-  );
-  
-  
-  
-  /* Must handle all non-commented lines after the header.
-   *
-   * @param line, the line (std::string reference) to read.
-   * @param h, const header tuple reference with indexing info.
-   * @param p, reference to parameter_t to modify with new samples.
-   * */ 
-  bool read_parameters(std::string& line, const header_t& h, parameter_t& p);
-  
   /* Reshapes parameters from [parameter, idx x iteration] to
    * [parameter, iteration, idx]
    *
