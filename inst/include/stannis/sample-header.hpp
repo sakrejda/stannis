@@ -1,127 +1,167 @@
 #ifndef SAMPLE_HEADER_HPP
 #define SAMPLE_HEADER_HPP
 
-#include <stannis/types.hpp>
-
-#include <boost/filesystem.hpp>
-#include <boost/uuids/uuid.hpp>
-
 #include <string>
+#include <cstdint>
+#include <vector>
+#include <algorithm>
 
 namespace stannis {
 
-  /* Read a name from a stream and copy it to a string. 
+  /* Read a name from a stream and copy it to a string
    *
-   * - expects to only be called if there are more names to read,
-   *   that is this is the first read or the last read ended on
-   *   a ',' character.
+   * - after the call both head and tail will point to either
+   *   '.', ',', or '\n' (if return true) and string::iterator::end() 
+   *   (if return false)
    *
-   * @tparam S a stream type with the 'read' method
-   * @param stream a stream of type S
-   * @param buffer used for buffered reads from the stream
-   * @param head iterator into the buffer to start read from
-   * @param tail iterator into the buffer to end read at
-   * @return true if there are more names to read
+   * @tparam I type of iterator to use (std::string::iterator is good).
+   * @param head iterator into the sequence to read from
+   * @param guard iterator to the end of the sequence
+   * @param name std::string to copy name into
+   * @return false if stream is truncated (ends without newline).
    */
-
-  template <class S>
-  int read_name(
-    S & stream,
-    std::array<char> & buffer,
-    std::array<char>::iterator & head,
-    std::array<char>::iterator & tail
+  template <class I>
+  bool read_name(
+    I & head,
+    I & guard,
     std::string & name
   ) {
-    int offset = 0;
-    if (buffer.size() == 0) 
-      throw std::logic_error("Read buffer size must be greater than zero.");
-    tail = head;
-    while (true) {
-      tail++;
-      if (tail != buffer.end() && (*tail == ',' || *tail == '\n' || *tail == '.')) {
-	name.resize(offset + (tail - head));
+    if (head == guard || head + 1 == guard) 
+      return false;
+    if (*head == ',')
+      head++;
+
+    auto tail = head;
+    while (tail != guard) {
+      if (*tail == ',' || *tail == '\n' || *tail == '.') {
+	name.resize(tail - head);
         std::copy(head, tail, name.begin());
-	head = tail;
 	break;
       }
-      if (tail == buffer.end()) {
-        offset += tail - head;
-	name.resize(offset);
-	std::copy(head, tail, name.begin());
-	stream.read(&buffer[0], buffer.size());
-	if (stream.gcount() == 0)
-	  throw std::logic_error("Unfinished name and unreadable stream.");
-	head = buffer.begin();
-	tail = head;
-	if (*tail == ',' || *tail = '\n' || *tail == '.')
-	  break;
-      }
+      tail++;
     }
-    return (*head != '\n');
+    head = tail;
+    return (tail != guard);
   }
 
-  template <class S>
-  int read_dims(
-    S & stream,
-    std::array<char> & buffer,
-    std::array<char>::iterator & head,
-    std::array<char>::iterator & tail
-    std::string & name
+  /* Read a set of dimensions from a stream and copy it to vector
+   *
+   * - after the call both head and tail will point to either
+   *   ',', or '\n' (if return true) and I::iterator::end() 
+   *   (if return false)
+   *
+   * @tparam I type of iterator (usually std::string::iterator works good)
+   * @param head iterator the sequence to read from
+   * @param guard iterator to the end of the sequence
+   * @param name std::vector<std::uint_least32_t> to read dims into.
+   * @return false if stream is truncated (ends without newline).
+   */
+  template <class I>
+  bool read_dims(
+    I & head,
+    I & guard,
+    std::vector<std::uint_least32_t> & dims
   ) {
+    if (head == guard) 
+      return false;
+    if (*head != '.') {
+      dims.push_back(1);
+      return true;
+    } 
+    if (++head == guard) {
+      return false; 
+    } 
 
+    auto tail = head;
+    dims.clear();
+    while (tail != guard) {
+      if (*tail == ',' || *tail == '\n' || *tail == '.') {
+        std::uint_least32_t d = std::stoi(std::string(head, tail));
+        dims.push_back(d);
+        if (*tail != '.')
+          break;
+      }
+      tail++;
+      head = tail;
+    }
+    if (tail != guard && dims.size() == 0) 
+      dims.push_back(1);
+    head = tail;
+    return (tail != guard);
   }
 
-  /* Streaming re-write of text header line to output file. */
-  template <class S1, class S2>
-  void rewrite_header(
-    std::basic_istream & stream,
+  /* Write out a name (to name_stream) and dimensions (to dim_stream)
+   *
+   * @param name reference to parameter name string.
+   * @param head reference to iterator to start dim read from
+   * @param guard reference to end of sequence iterator (for dims)
+   * @param name_stream where to write names
+   * @param dim_stream where to write dims
+   * @return bool true of both streams are good after writes.
+   */
+  template <class I, class S1, class S2>
+  bool handle_name(
+    std::string & name,
+    I & head,
+    I & guard,
     S1 & name_stream,
-    S2 & dim_stream, 
-    int buffer_size = 8192
+    S2 & dim_stream
   ) {
-    std::array<char> buffer(buffer_size);
-    std::array<char>::iterator head = buffer.begin();
-    std::array<char>::iterator tail = buffer.begin();
+    name_stream.write((char*)(&name[0]), name.length());
+    std::vector<std::uint_least32_t> dims;
+    read_dims(head, guard, dims);
+    std::uint_least16_t ndim = dims.size();
+    dim_stream.write((char*)(&ndim), sizeof(ndim));
+    for (const std::uint_least32_t d : dims)
+      dim_stream write((char*)(&d), sizeof(d));
+    return name_stream.good() && dim_stream.good();
+  }
+  
+
+  /* Streaming re-write of text header line to output file.
+   *
+   * Names are only written once per parameter, and dimensiosn are
+   * only calculated once per parameter.
+   *
+   * @tparam S1 type of stream to write names to
+   * @tparam S2 type of stream to write dimensions to 
+   * @param header std::string with the entire header
+   * @param name_stream what to write names to
+   * @param dim_stream what to write dimensions to 
+   * @return false if the header is incomplete (no final newline)
+   */
+  template <class S1, class S2>
+  bool rewrite_header(
+    std::string header,
+    S1 & name_stream,
+    S2 & dim_stream
+  ) {
+    std::string::iterator head = header.begin();
+    std::string::iterator dot = header.begin();
     std::string previous_name;
-    std::streampos previous_pos;
     std::string current_name;
 
-    bool read_more = read_name(stream, buffer, head, tail, previous_name);
-    previous_pos = stream.tellg() - (buffer.size() - head);
-
-    if (!read_more) {
-      name_stream.write((char*)(&previous_name[0]), previous_name.length());
-      std::uint_least16_t d = 1;
-      dim_stream.write((char*)(&d), sizeof(d));
-      dim_stream.write((char*)(&d), sizeof(d));
-      return;
+    bool good = read_name(head, header.end(), previous_name);
+    dot = head;
+    if (*head == '\n') {
+      handle_name(previous_name, dot, header.end(), name_stream, dim_stream);
+      return true;
     }
-    if (*head == '.') {
-      read_more = read_dims(stream, buffer, ++head, ++tail, d);
-    }
-
-    while (stream.good()) {
-      read_more = read_name(stream, head, tail, previous_name);
-      if (current_name == previous_name) {
-	previous_dot = dot;
-	previous_tail = tail;
-      } else { // handle previous name
-        name_stream.write((char*)(&previous_name[0]), previous_name.length());
-	std::vector<int> dims;
-	while (previous_dot != previous_tail) {
-	  dot = std::find(previous_dot, previous_tail, ".");
-	  dims.push_back(std::stoi(std::string(previous_dot + 1, dot))); 
-          previous_dot = std::find(dot + 1, previous_tail, ".");
-        }
-	int ndim = dims.size();
-	dim_stream.write((char*)(&ndim), sizeof(ndim));
-	for (const int d : dims) {
-          dim_stream write((char*)(&d), sizeof(d));
-	}
+    while (head != header.end() && *head != '\n') {
+      if (*head == '.') {
+	head = std::find(head, header.end(), ',');
+	if (head == header.end())
+	  return false;
       }
+      if(!read_name(head, header.end(), current_name))
+        return false;
+      if (current_name != previous_name) 
+	handle_name(previous_name, dot, header.end(), name_stream, dim_stream);
+      dot = head;
       previous_name = current_name;
     }
-    return;
+    handle_name(current_name, dot, header.end(), name_stream, dim_stream);
+    return true;
   }
 
 }
