@@ -1,5 +1,5 @@
-#ifndef SAMPLE_HEADER_HPP
-#define SAMPLE_HEADER_HPP
+#ifndef REWRITE_COLUMN_NAMES_HPP
+#define REWRITE_COLUMN_NAMES_HPP
 
 #include <string>
 #include <cstdint>
@@ -107,7 +107,9 @@ namespace stannis {
     S1 & name_stream,
     S2 & dim_stream
   ) {
-    name_stream.write((char*)(&name[0]), name.length());
+    std::uint_least16_t L = name.length();
+    name_stream.write((char*)(&L), sizeof(L));
+    name_stream.write((char*)(&name[0]), L);
     std::vector<std::uint_least32_t> dims;
     read_dims(head, guard, dims);
     std::uint_least16_t ndim = dims.size();

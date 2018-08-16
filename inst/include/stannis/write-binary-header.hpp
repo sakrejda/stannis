@@ -65,8 +65,7 @@ namespace stannis {
       S & stream,
       std::string & comment
     ) {
-      std::uint_least32_t:q
-  	    L = comment.length();
+      std::uint_least32_t L = comment.length();
       stream.write((char*)(&L), sizeof(L));
       stream.write((char*)(&comment[0]), L);
       return;

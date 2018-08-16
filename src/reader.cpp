@@ -10,10 +10,10 @@
 
 #include <boost/filesystem.hpp>
 
-#include <stannis/file-helpers.hpp>
+#include <stannis/helpers.hpp>
 #include <stannis/reader.hpp>
-#include <stannis/write-file-header.hpp>
-#include <stannis/sample-header.hpp>
+#include <stannis/rewrite-column-names.hpp>
+#include <stannis/read-header-data.hpp>
 
 namespace stannis {
 
@@ -44,24 +44,30 @@ namespace stannis {
         break;
       }
     }
+    name_stream.close();
+    dim_stream.close();
     if (!complete)
       return false;
 
     // Write binary header file
-    n_parameters = ...
-    n_iterations = ...
-    boost::filesystem::fstream os;
-    os.open(header_path);
-    write_stantastic_header(os, tag);
-    write_description(os, n_parameters);
-    write_comment(os, comment);
-    os.close()
+    std::uint_least32_t n_parameters = get_n_parameters(dim_path);
+    boost::filesystem::fstream header_stream;
+    header_stream.open(header_path);
+    write_stantastic_header(header_stream, tag);
+    write_description(header_stream, n_parameters);
+    write_comment(header_stream, comment);
+    header_stream.close()
 
     boost::iostreams::mapped_file_sink storage(root_path); 
     //boost::iostreams::stream<boost::iostreams::mapped_file_sink> os(storage);
-    rewrite_parameters(source_stream, names, dims, path);
+    std::uint_least32_t n_iterations;
+    std::vector<std::vector<std::uint_least32_t>> dimensions = get_dimensions(dim_path);
+    rewrite_parameters(source_stream, dimensions, root, n_iterations);
     rewrite_mass_matrix(source_stream); 
-    rewrite_parameters(source_stream, names, dims, path);
+    rewrite_parameters(source_stream, dimensions, root, n_iterations);
+    header_stream.open(header_path);
+    insert_iterations(n_iterations, header_stream);
+    header_stream.close();
     rewrite_timing(f);
     return true;
   }
