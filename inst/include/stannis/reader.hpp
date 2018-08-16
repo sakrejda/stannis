@@ -18,38 +18,20 @@
 
 namespace stannis {
 
-  /* Reshapes parameters from [parameter, idx x iteration] to
-   * [parameter, iteration, idx]
+  /* Rewrite a CmdStan file to mmap-friendly binary format.
    *
-   * @rparam p reference to parameters to reshape.
+   * @param source CmdStan file path
+   * @param root directory where to root output files
+   * @param tag uuid for the run.
+   * @param comment text run description.
+   * @return true if a complete rewrite is accomplished.
    */
-  void reshape_parameters(const header_t& h, parameter_t& p);
-  
-  /* Must handle all the lines of the 'mass matrix' portion within
-   * the .csv. 
-   *
-   * @param commented lines within .csv file.
-   * @return mass matrix (mm_t) 
-   */
-  mm_t read_mass_matrix(std::ifstream& f);
-  
-  /* Must handle all the lines of the 'timing' portion at the tail of 
-   * the .csv. 
-   *
-   * @param commented lines within .csv file.
-   * @return timing (timing_t)
-   */
-  timing_t read_timing(std::ifstream& f);
-    
-  /* Reads header, mass matrix, and parameter values from file stream.
-   * Assumes a CmdStan sampling file structure.
-   *
-   * @param input file stream (f) 
-   * @return tuple with header and parameters parsed
-   */
-  std::tuple<header_t, parameter_t, mm_t, timing_t> 
-  read_samples(std::ifstream& f);
-
+  bool rewrite(
+    const boost::filesystem::path & source,
+    const boost::filesystem::path & root,
+    const boost::uuids::uuid & tag,
+    const std::string & comment
+  );
 }
 
 #endif
