@@ -1,6 +1,8 @@
 #ifndef REWRITE_PARAMETERS_HPP
 #define REWRITE_PARAMETERS_HPP
 
+#include <boost/filesystem.hpp>
+
 namespace stannis {
   
   /* Read parameters from a source file and rewrite them 
@@ -21,6 +23,20 @@ namespace stannis {
     boost::filesystem::path root,
     std::uint_least32_t & n_iterations
   ) {
+  
+    boost::filesystem::path name_path = root /= "names.bin";
+    boost::filesystem::path dim_path = root /= "dimensions.bin";
+
+    std::vector<std::vector<std::uint_least32_t> dimensions = 
+      get_dimensions(dim_path);
+    std::vector<std:string> names = get_names(name_path); 
+  
+    std::vector<boost::filesystem::fstream> streams;
+    for (const std::string & name : names ) {
+      boost::filesystem::path p = root /= name;
+      streams.emplace_back(p);
+    }
+
 
   //FIXME: Needs implementation... should be easy...
   return true;

@@ -31,7 +31,6 @@ namespace stannis {
     boost::filesystem::path header_path = root /= "header.bin";
     boost::filesystem::path names_path = root /= "names.bin";
     boost::filesystem::path dim_path = root /= "dimensions.bin";
-    boost::filesystem::path storage_path = create_storage_file(root, name, 2 * source_size);
 
     // Rewrite the CmdStan header into names and dimensions
     boost::filesystem::fstream name_stream(names_path);
@@ -58,13 +57,11 @@ namespace stannis {
     write_comment(header_stream, comment);
     header_stream.close()
 
-    boost::iostreams::mapped_file_sink storage(root_path); 
-    //boost::iostreams::stream<boost::iostreams::mapped_file_sink> os(storage);
     std::uint_least32_t n_iterations;
     std::vector<std::vector<std::uint_least32_t>> dimensions = get_dimensions(dim_path);
-    rewrite_parameters(source_stream, dimensions, root, n_iterations);
+    rewrite_parameters(source_stream, dimensions, root_path, n_iterations);
     rewrite_mass_matrix(source_stream); 
-    rewrite_parameters(source_stream, dimensions, root, n_iterations);
+    rewrite_parameters(source_stream, dimensions, root_path, n_iterations);
     header_stream.open(header_path);
     insert_iterations(n_iterations, header_stream);
     header_stream.close();
