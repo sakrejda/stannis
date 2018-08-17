@@ -37,12 +37,19 @@ namespace stannis {
     boost::filesystem::fstream dim_stream(dim_path);
     std::string line;
     bool complete = false;
-    while (std::getline(source_stream, line)) {
-      if (!is_comment(line)) {
-        complete = rewrite_header(line, name_stream, dim_stream);  // FIXME: streams
-        break;
-      }
+
+    std::istreambuf_iterator<char> s_it(source_stream);
+    std::istreambuf_iterator<char> end_it();
+    char c;
+    while (s_it != end_it) {
+      if (*s_it == '#')
+	while (s_it != end_it && *s_it != '\n') 
+	  s_it++;
+      else 
+	break;
     }
+	  
+    complete = rewrite_header(source_stream, name_stream, dim_stream); 
     name_stream.close();
     dim_stream.close();
     if (!complete)
@@ -55,7 +62,7 @@ namespace stannis {
     write_stantastic_header(header_stream, tag);
     write_description(header_stream, n_parameters);
     write_comment(header_stream, comment);
-    header_stream.close()
+    header_stream.close();
 
     std::uint_least32_t n_iterations;
     std::vector<std::vector<std::uint_least32_t>> dimensions = get_dimensions(dim_path);

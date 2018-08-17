@@ -134,35 +134,36 @@ namespace stannis {
    */
   template <class S1, class S2>
   bool rewrite_header(
-    std::string header,
+    I & head,
     S1 & name_stream,
     S2 & dim_stream
   ) {
-    std::string::iterator head = header.begin();
-    std::string::iterator dot = header.begin();
+    I dot();
+    I end();
     std::string previous_name;
     std::string current_name;
 
-    bool good = read_name(head, header.end(), previous_name);
+    bool good = read_name(head, end, previous_name);
     dot = head;
     if (*head == '\n') {
-      handle_name(previous_name, dot, header.end(), name_stream, dim_stream);
+      handle_name(previous_name, dot, end, name_stream, dim_stream);
       return true;
     }
-    while (head != header.end() && *head != '\n') {
+    while (head != end && *head != '\n') {
       if (*head == '.') {
-	head = std::find(head, header.end(), ',');
-	if (head == header.end())
+	head = std::find(head, end, ',');
+	if (head == end)
 	  return false;
       }
-      if(!read_name(head, header.end(), current_name))
+      if(!read_name(head, end, current_name))
         return false;
       if (current_name != previous_name) 
-	handle_name(previous_name, dot, header.end(), name_stream, dim_stream);
+	handle_name(previous_name, dot, end, name_stream, dim_stream);
       dot = head;
       previous_name = current_name;
     }
-    handle_name(current_name, dot, header.end(), name_stream, dim_stream);
+    handle_name(current_name, dot, end, name_stream, dim_stream);
+    head = dot;
     return true;
   }
 
