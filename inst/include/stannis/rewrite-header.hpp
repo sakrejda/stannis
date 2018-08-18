@@ -1,5 +1,5 @@
-#ifndef REWRITE_COLUMN_NAMES_HPP
-#define REWRITE_COLUMN_NAMES_HPP
+#ifndef REWRITE_HEADER_HPP
+#define REWRITE_HEADER_HPP
 
 #include <string>
 #include <cstdint>

@@ -33,7 +33,7 @@ namespace stannis {
     std::vector<boost::filesystem::fstream> streams;
     std::vector<std::uint_least32_t> n_entries(n_parameters);
     for (int i = 0; i < n_parameters; ++i) {
-      boost::filesystem::path p = root /= names[i];
+      boost::filesystem::path p = root /= names[i].append(".bin");
       streams.emplace_back(p);
       streams[i].write((char*)(&n_iterations), sizeof(n_iterations));
       std::uint_least16_t ndim = dimensions[i].size();
