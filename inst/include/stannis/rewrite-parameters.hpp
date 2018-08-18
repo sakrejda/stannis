@@ -2,6 +2,7 @@
 #define REWRITE_PARAMETERS_HPP
 
 #include <boost/filesystem.hpp>
+#include <iostreams>
 
 namespace stannis {
   
@@ -16,45 +17,60 @@ namespace stannis {
    *        rewritten
    * @return true if the last iteration written was complete.
    */
-  template <class S>
-  rewrite_parameters(
-    S & source_stream,
+  template <class I>
+  bool rewrite_parameters(
+    I & head,
+    std::vector<std::string> names,
     std::vector<std::vector<std::uint_least32_t> dimensions,
     boost::filesystem::path root,
     std::uint_least32_t & n_iterations
   ) {
+    I tail();
+    I end();
   
-    boost::filesystem::path name_path = root /= "names.bin";
-    boost::filesystem::path dim_path = root /= "dimensions.bin";
-
-    std::vector<std::vector<std::uint_least32_t> dimensions = 
-      get_dimensions(dim_path);
-    std::vector<std:string> names = get_names(name_path); 
     int n_parameters = names.size();
   
     std::vector<boost::filesystem::fstream> streams;
-    for (const std::string & name : names ) {
-      boost::filesystem::path p = root /= name;
-      streams.emplace_back(p);
-    }
-
+    std::vector<std::uint_least32_t> n_entries(n_parameters);
     for (int i = 0; i < n_parameters; ++i) {
+      boost::filesystem::path p = root /= names[i];
+      streams.emplace_back(p);
+      streams[i].write((char*)(&n_iterations), sizeof(n_iterations));
       std::uint_least16_t ndim = dimensions[i].size();
-      for (std::uint_least16_t d = 0; d < ndim; ++d) {
-	for (std::uint_least32_t j = 0; j < dimensions[d]; ++j) {
-	  char c;
-          double val;
-          source_stream >> val;
-          streams[i].write((char*)(&val), sizeof(double));
-	  source_stream.read(&c, 1);
-	}
-	// FIXME: that's most of the read, we could use std::async with a reshape here...
-      }
+      streams[i].write((char*)(&dndim), sizeof(ndim));
+      n_entries[i] = std::accumulate(
+        dimensions[i].begin(), dimensions[i].end(), 1, 
+        std::multiplies<std::uint_least32_t>());
     }
-    
 
-  return true;
+    std::uint_least16_t p = 0;
+    std::uint_least32_t i = 0;
+    std::vector<char> ds;
+    double val;
+    while (head != end && *head != '#') {
+      while (head != end && *head != ',' && *head != '\n') {
+        ds.push_back(*head);
+      }
+      if (head == end)
+        return false;
+      val = std::strtod(&ds[0]);
+      ds.clear();
+      streams[p].write((char*)(&val), sizeof(double));
+      i++;
+      if (i >= n_entries[p]) {
+        p++; 
+        i = 0;
+      }
+      if (*head == '\n') {
+        p = 0;
+        i = 0;
+        n_iterations++;
+      }
+      head++;
+    }
+    return true;
   }
+
 }
 
 #endif

@@ -132,7 +132,7 @@ namespace stannis {
    * @param dim_stream what to write dimensions to 
    * @return false if the header is incomplete (no final newline)
    */
-  template <class S1, class S2>
+  template <class I, class S1, class S2>
   bool rewrite_header(
     I & head,
     S1 & name_stream,
@@ -151,14 +151,14 @@ namespace stannis {
     }
     while (head != end && *head != '\n') {
       if (*head == '.') {
-	head = std::find(head, end, ',');
-	if (head == end)
-	  return false;
+        head = std::find(head, end, ',');
+        if (head == end)
+          return false;
       }
       if(!read_name(head, end, current_name))
         return false;
       if (current_name != previous_name) 
-	handle_name(previous_name, dot, end, name_stream, dim_stream);
+        handle_name(previous_name, dot, end, name_stream, dim_stream);
       dot = head;
       previous_name = current_name;
     }

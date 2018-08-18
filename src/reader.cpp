@@ -10,10 +10,10 @@
 
 #include <boost/filesystem.hpp>
 
-#include <stannis/helpers.hpp>
 #include <stannis/reader.hpp>
 #include <stannis/rewrite-column-names.hpp>
 #include <stannis/read-header-data.hpp>
+#include <stannis/rewrite-parameters.hpp>
 
 namespace stannis {
 
@@ -23,7 +23,6 @@ namespace stannis {
     const boost::uuids::uuid & tag,
     const std::string & comment
   ) {
-    std::uintmax_t source_size = boost::filesystem::file_size(source);
     boost::filesystem::fstream source_stream;
     source_stream.open(source);
 
@@ -43,13 +42,13 @@ namespace stannis {
     char c;
     while (s_it != end_it) {
       if (*s_it == '#')
-	while (s_it != end_it && *s_it != '\n') 
-	  s_it++;
+        while (s_it != end_it && *s_it != '\n') 
+          s_it++;
       else 
-	break;
+        break;
     }
-	  
-    complete = rewrite_header(source_stream, name_stream, dim_stream); 
+    
+    complete = rewrite_header(s_it, name_stream, dim_stream); 
     name_stream.close();
     dim_stream.close();
     if (!complete)
@@ -65,10 +64,13 @@ namespace stannis {
     header_stream.close();
 
     std::uint_least32_t n_iterations;
-    std::vector<std::vector<std::uint_least32_t>> dimensions = get_dimensions(dim_path);
-    rewrite_parameters(source_stream, dimensions, root_path, n_iterations);
-    rewrite_mass_matrix(source_stream); 
-    rewrite_parameters(source_stream, dimensions, root_path, n_iterations);
+    std::vector<std::string> names 
+      = get_names(names_path);
+    std::vector<std::vector<std::uint_least32_t>> dimensions
+      = get_dimensions(dim_path);
+    rewrite_parameters(s_it, names, dimensions, root_path, n_iterations);
+    rewrite_mass_matrix(s_it_stream); 
+    rewrite_parameters(s_it, names, dimensions, root_path, n_iterations);
     header_stream.open(header_path);
     insert_iterations(n_iterations, header_stream);
     header_stream.close();
