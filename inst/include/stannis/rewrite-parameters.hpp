@@ -41,6 +41,8 @@ namespace stannis {
       n_entries[i] = std::accumulate(
         dimensions[i].begin(), dimensions[i].end(), 1, 
         std::multiplies<std::uint_least32_t>());
+      streams[i].write((char*)(&dimensions[i][0]),
+        sizeof(std::uint_least32_t) * ndim);
     }
 
     std::uint_least16_t p = 0;
@@ -67,6 +69,10 @@ namespace stannis {
         n_iterations++;
       }
       head++;
+    }
+    for (int i = 0; i < n_parameters; ++i) {
+      streams[i].seek(std::ios::beg);
+      streams[i].write((char*)(&n_iterations), sizeof(n_iterations);
     }
     return true;
   }

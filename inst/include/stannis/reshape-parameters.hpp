@@ -30,10 +30,13 @@ namespace stannis {
 
     std::uint_least32_t n_iterations;
     is.read((char*)(&n_iterations), sizeof(n_iterations));
+    os.write((char*)(&n_iterations), sizeof(n_iterations));
     std::uint_least16_t ndim;
     is.read((char*)(&dndim), sizeof(ndim));
+    os.write((char*)(&dndim), sizeof(ndim));
     std::vector<std::uint_least32_t> dimensions(ndim);
     is.read((char*)(&dimensions[0]), sizeof(std::uint_least32_t) * ndim);
+    os.write((char*)(&dimensions[0]), sizeof(std::uint_least32_t) * ndim);
 
     std::uint_least32_t n_entries = std::accumulate(
         dimensions[i].begin(), dimensions[i].end(), 1, 

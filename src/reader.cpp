@@ -30,6 +30,7 @@ namespace stannis {
     boost::filesystem::path header_path = root /= "header.bin";
     boost::filesystem::path names_path = root /= "names.bin";
     boost::filesystem::path dim_path = root /= "dimensions.bin";
+    boost::filesystem::path mm_path = root /= "mass_matrix.bin";
 
     // Rewrite the CmdStan header into names and dimensions
     boost::filesystem::fstream name_stream(names_path);
@@ -69,7 +70,15 @@ namespace stannis {
     std::vector<std::vector<std::uint_least32_t>> dimensions
       = get_dimensions(dim_path);
     rewrite_parameters(s_it, names, dimensions, root_path, n_iterations);
-    rewrite_mass_matrix(s_it_stream); 
+    //rewrite_mass_matrix(s_it_stream); 
+    char c;
+    while (s_it != end_it) {
+      if (*s_it == '#')
+        while (s_it != end_it && *s_it != '\n') 
+          s_it++;
+      else 
+        break;
+    }
     rewrite_parameters(s_it, names, dimensions, root_path, n_iterations);
     header_stream.open(header_path);
     insert_iterations(n_iterations, header_stream);
