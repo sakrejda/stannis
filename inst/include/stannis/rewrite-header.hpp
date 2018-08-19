@@ -26,19 +26,23 @@ namespace stannis {
     I & guard,
     std::string & name
   ) {
-    if (head == guard || head + 1 == guard) 
+    if (head == guard)
       return false;
     if (*head == ',')
       head++;
+      if (head == guard)
+        return false;
 
     auto tail = head;
+    int count = 0;
     while (tail != guard) {
       if (*tail == ',' || *tail == '\n' || *tail == '.') {
-	name.resize(tail - head);
+	      name.resize(count);
         std::copy(head, tail, name.begin());
-	break;
+        break;
       }
       tail++;
+      count++;
     }
     head = tail;
     return (tail != guard);
@@ -115,7 +119,7 @@ namespace stannis {
     std::uint_least16_t ndim = dims.size();
     dim_stream.write((char*)(&ndim), sizeof(ndim));
     for (const std::uint_least32_t d : dims)
-      dim_stream write((char*)(&d), sizeof(d));
+      dim_stream.write((char*)(&d), sizeof(d));
     return name_stream.good() && dim_stream.good();
   }
   
@@ -138,8 +142,8 @@ namespace stannis {
     S1 & name_stream,
     S2 & dim_stream
   ) {
-    I dot();
-    I end();
+    I dot;
+    I end;
     std::string previous_name;
     std::string current_name;
 

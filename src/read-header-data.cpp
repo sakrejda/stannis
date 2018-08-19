@@ -1,4 +1,4 @@
-#include <stannnis/read-header-data.hpp>
+#include <stannis/read-header-data.hpp>
 
 #include <boost/filesystem.hpp>
 
@@ -19,7 +19,7 @@ namespace stannis {
       stream.read((char*)(&ndim), sizeof(ndim));
       if (!stream.good())
         break;
-      stream.seekg(sizeof(std::uint_least32_t) * ndim, stream.tellg());
+      stream.seekg(sizeof(std::uint_least32_t) * ndim + stream.tellg());
       n_parameters++;
     }
     return n_parameters;
@@ -29,14 +29,14 @@ namespace stannis {
     const boost::filesystem::path path
   ) {
     boost::filesystem::fstream stream(path);
-    std::vector<std::uint_least16_t ndim_vec;
+    std::vector<std::uint_least16_t> ndim_vec;
     while (stream.good()) {
       std::uint_least16_t ndim;
       stream.read((char*)(&ndim), sizeof(ndim));
       if (!stream.good())
         break;
       ndim_vec.push_back(ndim);
-      stream.seekg(sizeof(std::uint_least32_t) * ndim, stream.tellg());
+      stream.seekg(sizeof(std::uint_least32_t) * ndim + stream.tellg());
     }
     return ndim_vec;
   }
@@ -68,7 +68,8 @@ namespace stannis {
       stream.read((char*)(&L), sizeof(L));
       if (!stream.good())
         break;
-      std::string name(L);
+      std::string name;
+      name.resize(L);
       stream.read((char*)(&name[0]), L);
       names.push_back(name);
     }

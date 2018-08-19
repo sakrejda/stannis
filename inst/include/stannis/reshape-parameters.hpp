@@ -2,7 +2,11 @@
 #define RESHAPE_PARAMETERS_HPP
 
 #include <boost/filesystem.hpp>
+
+#include <string>
+#include <vector>
 #include <iostreams>
+#include <algorithm>
 
 namespace stannis {
   

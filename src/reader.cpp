@@ -5,15 +5,17 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <iterator>
 #include <numeric>
 #include <cstdint>
 
 #include <boost/filesystem.hpp>
 
 #include <stannis/reader.hpp>
-#include <stannis/rewrite-column-names.hpp>
+#include <stannis/rewrite-header.hpp>
 #include <stannis/read-header-data.hpp>
 #include <stannis/rewrite-parameters.hpp>
+#include <stannis/write-binary-header.hpp>
 
 namespace stannis {
 
@@ -27,10 +29,14 @@ namespace stannis {
     source_stream.open(source);
 
     // Shared storage directory
-    boost::filesystem::path header_path = root /= "header.bin";
-    boost::filesystem::path names_path = root /= "names.bin";
-    boost::filesystem::path dim_path = root /= "dimensions.bin";
-    boost::filesystem::path mm_path = root /= "mass_matrix.bin";
+    boost::filesystem::path header_path(root);
+    header_path /= "header.bin";
+    boost::filesystem::path names_path(root);
+    names_path /= "names.bin";
+    boost::filesystem::path dim_path(root);
+    dim_path /= "dimensions.bin";
+    boost::filesystem::path mm_path(root); 
+    mm_path /= "mass_matrix.bin";
 
     // Rewrite the CmdStan header into names and dimensions
     boost::filesystem::fstream name_stream(names_path);
@@ -39,7 +45,7 @@ namespace stannis {
     bool complete = false;
 
     std::istreambuf_iterator<char> s_it(source_stream);
-    std::istreambuf_iterator<char> end_it();
+    std::istreambuf_iterator<char> end_it;
     char c;
     while (s_it != end_it) {
       if (*s_it == '#')
@@ -69,9 +75,8 @@ namespace stannis {
       = get_names(names_path);
     std::vector<std::vector<std::uint_least32_t>> dimensions
       = get_dimensions(dim_path);
-    rewrite_parameters(s_it, names, dimensions, root_path, n_iterations);
+    rewrite_parameters(s_it, names, dimensions, root, n_iterations);
     //rewrite_mass_matrix(s_it_stream); 
-    char c;
     while (s_it != end_it) {
       if (*s_it == '#')
         while (s_it != end_it && *s_it != '\n') 
@@ -79,11 +84,11 @@ namespace stannis {
       else 
         break;
     }
-    rewrite_parameters(s_it, names, dimensions, root_path, n_iterations);
+    rewrite_parameters(s_it, names, dimensions, root, n_iterations);
     header_stream.open(header_path);
-    insert_iterations(n_iterations, header_stream);
+    insert_iterations(header_stream, n_iterations);
     header_stream.close();
-    rewrite_timing(f);
+//    rewrite_timing(f);
     return true;
   }
   

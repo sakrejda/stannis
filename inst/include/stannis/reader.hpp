@@ -1,20 +1,12 @@
 #ifndef READER_HPP
 #define READER_HPP
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <iomanip>
+#include <boost/filesystem.hpp>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_io.hpp>
 
-#include <tuple>
+
 #include <string>
-#include <vector>
-#include <algorithm>
-#include <numeric>
-
-#include <stannis/types.hpp>
-#include <stannis/file-helpers.hpp>
-#include <stannis/sample-header.hpp>
 
 namespace stannis {
 
