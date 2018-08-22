@@ -2,6 +2,7 @@
 #include <stannis/reader.hpp>
 
 #include <Rcpp.h>
+
 // [[Rcpp::depends(BH)]]
 
 #include <boost/filesystem.hpp>

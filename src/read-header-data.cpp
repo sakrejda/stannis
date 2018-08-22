@@ -1,6 +1,7 @@
 #include <stannis/read-header-data.hpp>
 
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 #include <string>
 #include <cstdint>

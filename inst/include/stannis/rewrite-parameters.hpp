@@ -2,6 +2,7 @@
 #define REWRITE_PARAMETERS_HPP
 
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 #include <iostream>
 #include <cstdint>

@@ -5,7 +5,6 @@
 
 #include <string>
 #include <vector>
-#include <iostreams>
 #include <algorithm>
 
 namespace stannis {
