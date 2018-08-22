@@ -25,11 +25,12 @@ namespace stannis {
     const boost::uuids::uuid & tag,
     const std::string & comment
   ) {
-    boost::filesystem::fstream source_stream;
+    std::fstream of("/tmp/of.txt", std::ofstream::out | std::ofstream::app);
+    of << "source: " << source << std::endl;
+    boost::filesystem::ifstream source_stream;
     source_stream.open(source);
 
-    std::fstream of("/tmp/of.txt");
-
+    
     of << "rewrite-1" << std::endl;
     // Shared storage directory
     boost::filesystem::path header_path(root);
@@ -41,9 +42,12 @@ namespace stannis {
     boost::filesystem::path mm_path(root); 
     mm_path /= "mass_matrix.bin";
 
+    of << "header_path: " << header_path << std::endl;
+    of << "names_path: " << names_path << std::endl;
+    of << "dim_path: " << dim_path << std::endl;
     // Rewrite the CmdStan header into names and dimensions
-    boost::filesystem::fstream name_stream(names_path);
-    boost::filesystem::fstream dim_stream(dim_path);
+    boost::filesystem::fstream name_stream(names_path, std::ofstream::out | std::ofstream::trunc);
+    boost::filesystem::fstream dim_stream(dim_path, std::ofstream::out | std::ofstream::trunc);
     std::string line;
     bool complete = false;
 
@@ -51,11 +55,12 @@ namespace stannis {
     std::istreambuf_iterator<char> end_it;
     char c;
     while (s_it != end_it) {
-      if (*s_it == '#')
+      if (*s_it == '#') 
         while (s_it != end_it && *s_it != '\n') 
           s_it++;
-      else 
+      else
         break;
+      s_it++;
     }
     
     of << "rewrite-2" << std::endl;
@@ -74,6 +79,8 @@ namespace stannis {
     write_description(header_stream, n_parameters);
     write_comment(header_stream, comment);
     header_stream.close();
+
+    of << "rewrite-4" << std::endl;
 
     std::uint_least32_t n_iterations;
     std::vector<std::string> names 

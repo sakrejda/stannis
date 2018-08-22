@@ -3,8 +3,6 @@
 
 #include <Rcpp.h>
 
-// [[Rcpp::depends(BH)]]
-
 #include <boost/filesystem.hpp>
 #include <boost/uuid/uuid.hpp>
 #include <boost/uuid/uuid_io.hpp>
@@ -14,16 +12,25 @@
 
 RcppExport SEXP rewrite(SEXP source_, SEXP root_, SEXP tag_, SEXP comment_
 ) {
+  std::ofstream of("/tmp/of.txt", std::ofstream::out);
+  of << "rewrite-interface" << std::endl;
   boost::filesystem::path source = Rcpp::as<boost::filesystem::path>(source_);
   boost::filesystem::path root = Rcpp::as<boost::filesystem::path>(root_);
   boost::uuids::uuid tag = Rcpp::as<boost::uuids::uuid>(tag_);
   std::string comment = Rcpp::as<std::string>(comment_);
-  std::fstream of("/tmp/of.txt");
-  of << "rewrite-interface" << std::endl;
   bool complete = stannis::rewrite(source, root, tag, comment);
-  Rcpp::Robject result = Rcpp::warp(complete);
+  Rcpp::RObject result = Rcpp::wrap(complete);
   return result;
 }
 
+static const R_CallMethodDef CallEntries[] = {
+    {"rewrite", (DL_FUNC) &rewrite, 4},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_stannis(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
+}
 
 

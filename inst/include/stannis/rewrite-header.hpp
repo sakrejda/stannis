@@ -26,6 +26,7 @@ namespace stannis {
     I & guard,
     std::string & name
   ) {
+    name.clear();
     if (head == guard)
       return false;
     if (*head == ',')
@@ -34,15 +35,12 @@ namespace stannis {
         return false;
 
     auto tail = head;
-    int count = 0;
     while (tail != guard) {
-      if (*tail == ',' || *tail == '\n' || *tail == '.') {
-	      name.resize(count);
-        std::copy(head, tail, name.begin());
+      if (*tail == ',' || *tail == '\n' || *tail == '.')
         break;
-      }
+      else
+	name.append(1, *tail);
       tail++;
-      count++;
     }
     head = tail;
     return (tail != guard);
@@ -66,9 +64,11 @@ namespace stannis {
     I & guard,
     std::vector<std::uint_least32_t> & dims
   ) {
+    std::ofstream of("/tmp/of.txt", std::ofstream::out | std::ofstream::app); 
     if (head == guard) 
       return false;
     if (*head != '.') {
+      of << "scalar" << std::endl;
       dims.push_back(1);
       return true;
     } 
@@ -78,15 +78,22 @@ namespace stannis {
 
     auto tail = head;
     dims.clear();
+    std::string ds;
+    of << "try it." << std::endl;
     while (tail != guard) {
+      of << "trying." << std::endl;
       if (*tail == ',' || *tail == '\n' || *tail == '.') {
-        std::uint_least32_t d = std::stoi(std::string(head, tail));
+        std::uint_least32_t d = std::stoi(ds);
+        ds.clear();
         dims.push_back(d);
         if (*tail != '.')
           break;
+      } else {
+        ds.append(1, *tail);
+        tail++;
+        head = tail;
       }
-      tail++;
-      head = tail;
+      of << ds << std::endl;
     }
     if (tail != guard && dims.size() == 0) 
       dims.push_back(1);
@@ -142,6 +149,7 @@ namespace stannis {
     S1 & name_stream,
     S2 & dim_stream
   ) {
+    std::ofstream of("/tmp/of.txt", std::ofstream::out | std::ofstream::app); 
     I dot;
     I end;
     std::string previous_name;
@@ -154,6 +162,9 @@ namespace stannis {
       return true;
     }
     while (head != end && *head != '\n') {
+      of << "Good head: " << *head << std::endl;
+      of << "previous_name: " << previous_name << std::endl;
+      of << "current_name: " << current_name << std::endl;
       if (*head == '.') {
         head = std::find(head, end, ',');
         if (head == end)
@@ -168,6 +179,8 @@ namespace stannis {
     }
     handle_name(current_name, dot, end, name_stream, dim_stream);
     head = dot;
+    name_stream.flush();
+    dim_stream.flush();
     return true;
   }
 
