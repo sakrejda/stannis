@@ -28,6 +28,9 @@ namespace stannis {
     boost::filesystem::fstream source_stream;
     source_stream.open(source);
 
+    std::fstream of("/tmp/of.txt");
+
+    of << "rewrite-1" << std::endl;
     // Shared storage directory
     boost::filesystem::path header_path(root);
     header_path /= "header.bin";
@@ -55,12 +58,14 @@ namespace stannis {
         break;
     }
     
+    of << "rewrite-2" << std::endl;
     complete = rewrite_header(s_it, name_stream, dim_stream); 
     name_stream.close();
     dim_stream.close();
     if (!complete)
       return false;
 
+    of << "rewrite-3" << std::endl;
     // Write binary header file
     std::uint_least32_t n_parameters = get_n_parameters(dim_path);
     boost::filesystem::fstream header_stream;
