@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <vector>
 #include <string>
+#include <memory>
+#include <ios>
 
 namespace stannis {
   
@@ -28,31 +30,40 @@ namespace stannis {
     const std::vector<std::string> & names_,
     const std::vector<std::vector<std::uint_least32_t>> & dimensions_,
     const boost::filesystem::path & root_,
-    std::uint_least32_t & n_iterations
+    std::uint_least32_t & n_iterations,
+    std::ios_base::openmode mode
   ) {
     I tail;
     I end;
-  
+    std::fstream of("/tmp/of.txt", std::ofstream::out | std::ofstream::app);
+ 
+    while (*head == '\n')
+      head++;
+
     std::vector<std::string> names(names_);
     int n_parameters = names.size();
-    std::vector<std::vector<std::uint_least32_t>> dimensions(dimensions);
+    std::vector<std::vector<std::uint_least32_t>> dimensions(dimensions_);
     boost::filesystem::path root(root_);
   
-    std::vector<boost::filesystem::fstream * > streams;
+    std::vector<std::shared_ptr<boost::filesystem::fstream>> streams;
     std::vector<std::uint_least32_t> n_entries(n_parameters);
     for (int i = 0; i < n_parameters; ++i) {
+      root = root_;
       boost::filesystem::path p = root /= names[i].append(".bin");
-      boost::filesystem::fstream * stream_ptr = new boost::filesystem::fstream(p);
+      std::shared_ptr<boost::filesystem::fstream> stream_ptr(
+	new boost::filesystem::fstream);
+      stream_ptr->open(p, mode);
       streams.push_back(stream_ptr);
-      streams[i]->write((char*)(&n_iterations), sizeof(n_iterations));
+      stream_ptr->write((char*)(&n_iterations), sizeof(n_iterations));
       std::uint_least16_t ndim = dimensions[i].size();
-      streams[i]->write((char*)(&ndim), sizeof(ndim));
+      stream_ptr->write((char*)(&ndim), sizeof(ndim));
       n_entries[i] = std::accumulate(
         dimensions[i].begin(), dimensions[i].end(), 1, 
         std::multiplies<std::uint_least32_t>());
-      streams[i]->write((char*)(&dimensions[i][0]),
+      stream_ptr->write((char*)(&dimensions[i][0]),
         sizeof(std::uint_least32_t) * ndim);
     }
+
 
     std::uint_least16_t p = 0;
     std::uint_least32_t i = 0;
@@ -60,9 +71,8 @@ namespace stannis {
     double val;
     char* c;
     while (head != end && *head != '#') {
-      while (head != end && *head != ',' && *head != '\n') {
-        ds.push_back(*head);
-      }
+      while (head != end && *head != ',' && *head != '\n') 
+        ds.push_back(*head++);
       if (head == end)
         return false;
       val = std::strtod(&ds[0], &c);
@@ -80,12 +90,13 @@ namespace stannis {
       }
       head++;
     }
+    of << "PART B" << std::endl;
     for (int i = 0; i < n_parameters; ++i) {
       streams[i]->seekg(std::ios::beg);
       streams[i]->write((char*)(&n_iterations), sizeof(n_iterations));
       streams[i]->close();
-      delete streams[i];
     }
+    of << "PART C" << std::endl;
     return true;
   }
 

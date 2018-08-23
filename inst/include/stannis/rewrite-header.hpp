@@ -62,43 +62,23 @@ namespace stannis {
   bool read_dims(
     I & head,
     I & guard,
-    std::vector<std::uint_least32_t> & dims
+    std::string & dim_string
   ) {
-    std::ofstream of("/tmp/of.txt", std::ofstream::out | std::ofstream::app); 
+    dim_string.clear();
     if (head == guard) 
       return false;
-    if (*head != '.') {
-      of << "scalar" << std::endl;
-      dims.push_back(1);
+    if (*head != '.')
       return true;
-    } 
-    if (++head == guard) {
+    if (++head == guard)
       return false; 
-    } 
 
-    auto tail = head;
-    dims.clear();
-    std::string ds;
-    of << "try it." << std::endl;
-    while (tail != guard) {
-      of << "trying." << std::endl;
-      if (*tail == ',' || *tail == '\n' || *tail == '.') {
-        std::uint_least32_t d = std::stoi(ds);
-        ds.clear();
-        dims.push_back(d);
-        if (*tail != '.')
-          break;
-      } else {
-        ds.append(1, *tail);
-        tail++;
-        head = tail;
-      }
-      of << ds << std::endl;
+    while (head != guard) {
+      dim_string.append(1, *head);
+      head++;
+      if (*head == ',' || *head == '\n')
+        break;
     }
-    if (tail != guard && dims.size() == 0) 
-      dims.push_back(1);
-    head = tail;
-    return (tail != guard);
+    return (head != guard);
   }
 
   /* Write out a name (to name_stream) and dimensions (to dim_stream)
@@ -110,23 +90,34 @@ namespace stannis {
    * @param dim_stream where to write dims
    * @return bool true of both streams are good after writes.
    */
-  template <class I, class S1, class S2>
+  template <class S1, class S2>
   bool handle_name(
-    std::string & name,
-    I & head,
-    I & guard,
+    const std::string & name,
+    const std::string & dim_string_,
     S1 & name_stream,
     S2 & dim_stream
   ) {
+    std::string dim_string(dim_string_);
     std::uint_least16_t L = name.length();
     name_stream.write((char*)(&L), sizeof(L));
     name_stream.write((char*)(&name[0]), L);
+
     std::vector<std::uint_least32_t> dims;
-    read_dims(head, guard, dims);
+    if (dim_string.length() == 0) {
+      dims.push_back(1);
+    } else {
+      std::uint_least32_t d;
+      std::size_t pos = 0;
+      std::size_t nc = 0;
+      while (pos < dim_string.length()) {
+	d = std::stoi(dim_string.substr(pos), &nc); 
+        dims.push_back(d);
+	pos += nc + 1;
+      } 
+    }
     std::uint_least16_t ndim = dims.size();
     dim_stream.write((char*)(&ndim), sizeof(ndim));
-    for (const std::uint_least32_t d : dims)
-      dim_stream.write((char*)(&d), sizeof(d));
+    dim_stream.write((char*)(&dims[0]), ndim * sizeof(std::uint_least32_t));
     return name_stream.good() && dim_stream.good();
   }
   
@@ -149,38 +140,32 @@ namespace stannis {
     S1 & name_stream,
     S2 & dim_stream
   ) {
-    std::ofstream of("/tmp/of.txt", std::ofstream::out | std::ofstream::app); 
-    I dot;
+    I tail;
     I end;
+    std::string dim_string = "";
     std::string previous_name;
     std::string current_name;
 
-    bool good = read_name(head, end, previous_name);
-    dot = head;
+    if (!read_name(head, end, previous_name))
+      return false;
     if (*head == '\n') {
-      handle_name(previous_name, dot, end, name_stream, dim_stream);
+      handle_name(previous_name, dim_string, name_stream, dim_stream);
       return true;
     }
+
     while (head != end && *head != '\n') {
-      of << "Good head: " << *head << std::endl;
-      of << "previous_name: " << previous_name << std::endl;
-      of << "current_name: " << current_name << std::endl;
-      if (*head == '.') {
-        head = std::find(head, end, ',');
-        if (head == end)
-          return false;
-      }
+      if(!read_dims(head, end, dim_string))
+	return false;
+      if (*head == '\n')
+        break;
       if(!read_name(head, end, current_name))
         return false;
-      if (current_name != previous_name) 
-        handle_name(previous_name, dot, end, name_stream, dim_stream);
-      dot = head;
+      if (current_name != previous_name) {
+        handle_name(previous_name, dim_string, name_stream, dim_stream);
+      }
       previous_name = current_name;
     }
-    handle_name(current_name, dot, end, name_stream, dim_stream);
-    head = dot;
-    name_stream.flush();
-    dim_stream.flush();
+    handle_name(current_name, dim_string, name_stream, dim_stream);
     return true;
   }
 

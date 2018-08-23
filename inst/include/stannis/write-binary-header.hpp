@@ -23,6 +23,7 @@ namespace stannis {
   ) {
     // Magic string          
     stream.write(stannis::magic, 11);       
+
     
     // File version
     stream.write((char*)(&stannis::file_version), sizeof(stannis::file_version));
@@ -32,7 +33,7 @@ namespace stannis {
 
     // UUID tag
     stream.write((char*)(&tag.data[0]), tag.static_size());
-    
+    stream.flush(); 
     return;
   }
 
