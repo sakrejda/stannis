@@ -53,13 +53,13 @@ namespace stannis {
       std::shared_ptr<boost::filesystem::fstream> stream_ptr(new boost::filesystem::fstream);
       stream_ptr->open(p, mode);
       streams.push_back(stream_ptr);
-      stream[i]->write((char*)(&n_iterations), sizeof(n_iterations));
+      streams[i]->write((char*)(&n_iterations), sizeof(n_iterations));
       std::uint_least16_t ndim = dimensions[i].size();
-      stream[i]->write((char*)(&ndim), sizeof(ndim));
+      streams[i]->write((char*)(&ndim), sizeof(ndim));
       n_entries[i] = std::accumulate(
         dimensions[i].begin(), dimensions[i].end(), 1, 
         std::multiplies<std::uint_least32_t>());
-      stream[i]->write((char*)(&dimensions[i][0]),
+      streams[i]->write((char*)(&dimensions[i][0]),
         sizeof(std::uint_least32_t) * ndim);
     }
 

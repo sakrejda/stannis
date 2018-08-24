@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <numeric>
 #include <ios>
 
 namespace stannis {
@@ -14,10 +15,10 @@ namespace stannis {
     const std::string & name,
     const boost::filesystem::path & root_
   ) {
-    boost::filesystem::path root(root_);
-    boost::filesystem::path p_in = root /= name.append(".bin");
-    root = root_;
-    boost::filesystem::path p_out = root /= name.append("-reshape.bin");
+    boost::filesystem::path p_in(root_);
+    p_in /= name + ".bin";
+    boost::filesystem::path p_out(root_);
+    p_out /= name + "-reshape.bin";
 
     boost::filesystem::fstream is(p_in);
     boost::filesystem::fstream os(p_out, std::ofstream::out | std::ofstream::trunc);
@@ -28,8 +29,8 @@ namespace stannis {
     if (!is.good() || !os.good())
       return false;
     std::uint_least16_t ndim;
-    is.read((char*)(&dndim), sizeof(ndim));
-    os.write((char*)(&dndim), sizeof(ndim));
+    is.read((char*)(&ndim), sizeof(ndim));
+    os.write((char*)(&ndim), sizeof(ndim));
     if (!is.good() || !os.good())
       return false;
     std::vector<std::uint_least32_t> dimensions(ndim);
@@ -39,7 +40,7 @@ namespace stannis {
       return false;
 
     std::uint_least32_t n_entries = std::accumulate(
-        dimensions[i].begin(), dimensions[i].end(), 1, 
+        dimensions.begin(), dimensions.end(), 1, 
         std::multiplies<std::uint_least32_t>());
 
     typedef std::uint_least64_t N_size_t;

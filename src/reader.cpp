@@ -15,6 +15,7 @@
 #include <stannis/rewrite-header.hpp>
 #include <stannis/read-header-data.hpp>
 #include <stannis/rewrite-parameters.hpp>
+#include <stannis/reshape-parameters.hpp>
 #include <stannis/write-binary-header.hpp>
 
 namespace stannis {

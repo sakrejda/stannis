@@ -14,3 +14,7 @@
 *.swo
 *.swp
 *~
+
+# Binaries / objects
+*.so
+*.o

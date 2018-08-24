@@ -17,13 +17,13 @@ namespace stannis {
    */
   template <class I>
   bool skip_comments(
-    I & head,
+    I & head
   ) {
     I guard;
     char c;
     while (head != guard) {
       if (*head == '#') 
-        while (head != end_it && *head != '\n') 
+        while (head != guard && *head != '\n') 
           head++;
       else
         break;
