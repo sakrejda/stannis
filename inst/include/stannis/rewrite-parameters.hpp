@@ -17,7 +17,8 @@ namespace stannis {
    * to binary files in a root directory.
    *
    * @tparam type of the source stream
-   * @param source_stream stream to read text from
+   * @param iterator to read values from
+   * @param names names of all parameters
    * @param dimensions dimension data about each parameter
    * @param root path to directory where binary files are written
    * @param[out] n_iterations reference to variable for counting iterations
@@ -35,8 +36,7 @@ namespace stannis {
   ) {
     I tail;
     I end;
-    std::fstream of("/tmp/of.txt", std::ofstream::out | std::ofstream::app);
- 
+
     while (*head == '\n')
       head++;
 
@@ -50,17 +50,16 @@ namespace stannis {
     for (int i = 0; i < n_parameters; ++i) {
       root = root_;
       boost::filesystem::path p = root /= names[i].append(".bin");
-      std::shared_ptr<boost::filesystem::fstream> stream_ptr(
-	new boost::filesystem::fstream);
+      std::shared_ptr<boost::filesystem::fstream> stream_ptr(new boost::filesystem::fstream);
       stream_ptr->open(p, mode);
       streams.push_back(stream_ptr);
-      stream_ptr->write((char*)(&n_iterations), sizeof(n_iterations));
+      stream[i]->write((char*)(&n_iterations), sizeof(n_iterations));
       std::uint_least16_t ndim = dimensions[i].size();
-      stream_ptr->write((char*)(&ndim), sizeof(ndim));
+      stream[i]->write((char*)(&ndim), sizeof(ndim));
       n_entries[i] = std::accumulate(
         dimensions[i].begin(), dimensions[i].end(), 1, 
         std::multiplies<std::uint_least32_t>());
-      stream_ptr->write((char*)(&dimensions[i][0]),
+      stream[i]->write((char*)(&dimensions[i][0]),
         sizeof(std::uint_least32_t) * ndim);
     }
 
@@ -90,13 +89,11 @@ namespace stannis {
       }
       head++;
     }
-    of << "PART B" << std::endl;
     for (int i = 0; i < n_parameters; ++i) {
       streams[i]->seekg(std::ios::beg);
       streams[i]->write((char*)(&n_iterations), sizeof(n_iterations));
       streams[i]->close();
     }
-    of << "PART C" << std::endl;
     return true;
   }
 

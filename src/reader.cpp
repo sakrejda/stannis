@@ -19,16 +19,16 @@
 
 namespace stannis {
 
+  // See header.
   bool rewrite(
     const boost::filesystem::path & source,
     const boost::filesystem::path & root,
     const boost::uuids::uuid & tag,
     const std::string & comment
   ) {
-    std::fstream of("/tmp/of.txt", std::ofstream::out | std::ofstream::app);
+    // Stream from CmdStan file
     boost::filesystem::ifstream source_stream;
     source_stream.open(source);
-
     
     // Shared storage directory
     boost::filesystem::path header_path(root);
@@ -40,24 +40,17 @@ namespace stannis {
     boost::filesystem::path mm_path(root); 
     mm_path /= "mass_matrix.bin";
 
-    // Rewrite the CmdStan header into names and dimensions
+    // output streams (open later)
     boost::filesystem::fstream name_stream(names_path, std::ofstream::out | std::ofstream::trunc);
     boost::filesystem::fstream dim_stream(dim_path, std::ofstream::out | std::ofstream::trunc);
-    std::string line;
-    bool complete = false;
-
     std::istreambuf_iterator<char> s_it(source_stream);
-    std::istreambuf_iterator<char> end_it;
-    char c;
-    while (s_it != end_it) {
-      if (*s_it == '#') 
-        while (s_it != end_it && *s_it != '\n') 
-          s_it++;
-      else
-        break;
-      s_it++;
-    }
+    boost::filesystem::fstream header_stream;
+
+    bool complete = skip_comments(s_it);
+    if (!complete)
+      return false;
     
+    // Rewrite the CmdStan header into names and dimensions
     complete = rewrite_header(s_it, name_stream, dim_stream); 
     name_stream.close();
     dim_stream.close();
@@ -65,10 +58,9 @@ namespace stannis {
       return false;
 
     // Write binary header file
-    std::uint_least32_t n_parameters = get_n_parameters(dim_path);
-    boost::filesystem::fstream header_stream;
     header_stream.open(header_path, std::ofstream::out | std::ofstream::trunc);
     write_stantastic_header(header_stream, tag);
+    std::uint_least32_t n_parameters = get_n_parameters(dim_path);
     write_description(header_stream, n_parameters);
     write_comment(header_stream, comment);
     header_stream.close();
@@ -80,22 +72,30 @@ namespace stannis {
       = get_ndim(dim_path);
     std::vector<std::vector<std::uint_least32_t>> dimensions
       = get_dimensions(dim_path);
-    rewrite_parameters(s_it, names, dimensions, root, n_iterations,
+    complete = rewrite_parameters(s_it, names, dimensions, root, n_iterations,
       std::ofstream::out | std::ofstream::trunc);
+    if (!complete)
+      return false;
     //rewrite_mass_matrix(s_it_stream); 
     //skip mass matrix for now...
-    while (s_it != end_it) {
-      if (*s_it == '#')
-        while (s_it != end_it && *s_it != '\n')
-          s_it++;
-      else 
-        break;
-    }
-    rewrite_parameters(s_it, names, dimensions, root, n_iterations, 
+    complete = skip_comments(s_it);  
+    if (!complete)
+      return false;
+   
+    complete = rewrite_parameters(s_it, names, dimensions, root, n_iterations, 
       std::ofstream::out | std::ofstream::app);
-    header_stream.open(header_path);
+    if (!complete)
+      return false;
+
+    header_stream.open(header_path, std::ofstream::out);
     insert_iterations(header_stream, n_iterations);
     header_stream.close();
+
+    for (auto name : names ) {
+      complete = reshape_parameters(name, root);
+      if (!complete)
+        return false;
+    }
 //    rewrite_timing(f);
     return true;
   }

@@ -8,11 +8,37 @@
 
 namespace stannis {
 
+  /* Skip comment lines
+   *
+   * @tparam I type of iterator to use (std::string::iterator is good).
+   * @param head iterator into the sequence to read from
+   * @param guard iterator to the end of the sequence
+   * @return false if stream is truncated (ends without newline).
+   */
+  template <class I>
+  bool skip_comments(
+    I & head,
+  ) {
+    I guard;
+    char c;
+    while (head != guard) {
+      if (*head == '#') 
+        while (head != end_it && *head != '\n') 
+          head++;
+      else
+        break;
+      head++;
+    }
+    return head != guard;
+  }
+
   /* Read a name from a stream and copy it to a string
    *
    * - after the call both head and tail will point to either
    *   '.', ',', or '\n' (if return true) and string::iterator::end() 
    *   (if return false)
+   *
+   * - The iterators must be at least forward input iterators
    *
    * @tparam I type of iterator to use (std::string::iterator is good).
    * @param head iterator into the sequence to read from

@@ -10,13 +10,13 @@
 
 namespace stannis {
 
-  /* Rewrite a CmdStan file to mmap-friendly binary format.
+  /* Function rewrites a CmdStan-format .csv file into a multi-file binary version.
    *
-   * @param source CmdStan file path
-   * @param root directory where to root output files
-   * @param tag uuid for the run.
-   * @param comment text run description.
-   * @return true if a complete rewrite is accomplished.
+   * @param source path to the CmdStan file
+   * @param root path to directory that should hold the binary files
+   * @param tag UUID to insert into the binary header
+   * @param comment string comment to insert into binary header
+   * @return bool true iff the CmdStan format file was complete.
    */
   bool rewrite(
     const boost::filesystem::path & source,

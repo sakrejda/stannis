@@ -6,7 +6,6 @@
 #include <string>
 #include <cstdint>
 #include <vector>
-#include <algorithm>
 
 namespace stannis {
  
