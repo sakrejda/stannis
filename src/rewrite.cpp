@@ -11,7 +11,7 @@
 
 #include <boost/filesystem.hpp>
 
-#include <stannis/reader.hpp>
+#include <stannis/rewrite.hpp>
 #include <stannis/rewrite-header.hpp>
 #include <stannis/read-header-data.hpp>
 #include <stannis/rewrite-parameters.hpp>
@@ -60,13 +60,11 @@ namespace stannis {
 
     // Write binary header file
     header_stream.open(header_path, std::ofstream::out | std::ofstream::trunc);
-    write_stantastic_header(header_stream, tag);
-    std::uint_least32_t n_parameters = get_n_parameters(dim_path);
-    write_description(header_stream, n_parameters);
-    write_comment(header_stream, comment);
+    write_stantastic_header(header_stream, tag, comment);
     header_stream.close();
 
-    std::uint_least32_t n_iterations;
+    // Rewrite parameters in binary
+    std::uint_least32_t n_iterations = 0;
     std::vector<std::string> names 
       = get_names(names_path);
     std::vector<std::uint_least16_t> ndims 
@@ -77,20 +75,18 @@ namespace stannis {
       std::ofstream::out | std::ofstream::trunc);
     if (!complete)
       return false;
+
     //rewrite_mass_matrix(s_it_stream); 
     //skip mass matrix for now...
     complete = skip_comments(s_it);  
     if (!complete)
       return false;
    
+    // Rewrite rest of iterations
     complete = rewrite_parameters(s_it, names, dimensions, root, n_iterations, 
       std::ofstream::out | std::ofstream::app);
     if (!complete)
       return false;
-
-    header_stream.open(header_path, std::ofstream::out);
-    insert_iterations(header_stream, n_iterations);
-    header_stream.close();
 
     for (auto name : names ) {
       complete = reshape_parameters(name, root);

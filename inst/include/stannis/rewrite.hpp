@@ -1,5 +1,5 @@
-#ifndef READER_HPP
-#define READER_HPP
+#ifndef REWRITE_HPP
+#define REWRITE_HPP
 
 #include <boost/filesystem.hpp>
 #include <boost/uuid/uuid.hpp>

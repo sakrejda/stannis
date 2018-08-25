@@ -13,17 +13,14 @@ namespace stannis {
   const std::uint_least16_t minor_stan = 17;
   const std::uint_least16_t patch_stan = 3;
 
-  constexpr std::uint_least8_t n_iterations_position = std::ios::beg + 11 
-    + sizeof(std::uint_least32_t) + sizeof(std::uint_least16_t) * 3;
-
   template<class S>
   void write_stantastic_header(
     S & stream, 
-    const boost::uuids::uuid & tag
+    const boost::uuids::uuid & tag,
+    const std::string & comment
   ) {
     // Magic string          
     stream.write(stannis::magic, 11);       
-
     
     // File version
     stream.write((char*)(&stannis::file_version), sizeof(stannis::file_version));
@@ -34,39 +31,12 @@ namespace stannis {
     // UUID tag
     stream.write((char*)(&tag.data[0]), tag.static_size());
     stream.flush(); 
-    return;
-  }
 
-  template <class S>
-  void insert_iterations(
-    S & stream,
-    std::uint_least32_t n_iterations
-  ) {
-    std::streampos current_position = stream.tellp();
-    stream.seekp(stannis::n_iterations_position);
-    stream.write((char*)(&n_iterations), sizeof(n_iterations));
-    stream.seekp(current_position);
-  };
-
-  template <class S>
-  void write_description(
-    S & stream,
-    std::uint_least32_t n_parameters
-  ) {
-    std::uint_least32_t n_iterations = 0; // modified later
-    stream.write((char*)(&n_iterations), sizeof(n_iterations));
-    stream.write((char*)(&n_parameters), sizeof(n_parameters));
-    return;
-  }
-
-  template <class S>
-  void write_comment(
-    S & stream,
-    const std::string & comment
-  ) {
+    // Comment
     std::uint_least32_t L = comment.length();
     stream.write((char*)(&L), sizeof(L));
     stream.write((char*)(&comment[0]), L);
+
     return;
   }
 

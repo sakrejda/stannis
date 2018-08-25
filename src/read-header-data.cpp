@@ -74,5 +74,15 @@ namespace stannis {
     return names;
   }
 
+  std::string get_magic(
+    const boost::filesystem::path path
+  ) {
+    boost::filesystem::fstream stream(path);
+    std::string s;
+    s.resize(11);
+    stream.read((char*)(&s[0]), 11);
+    return s;
+  }
+
 }
 

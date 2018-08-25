@@ -56,6 +56,11 @@ namespace stannis {
     const boost::filesystem::path path
   );
 
+  /* Gets the (expect 11 character) magic string. */
+  std::string get_magic(
+    const boost::filesystem::path path
+  );
+
 }
 
 #endif

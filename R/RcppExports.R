@@ -2,6 +2,6 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 rewrite <- function(source, root, tag, comment) {
-    .Call('_stannis_rewrite', PACKAGE = 'stannis', source, root, tag, comment)
+    .Call('rewrite', PACKAGE = 'stannis', source, root, tag, comment)
 }
 
