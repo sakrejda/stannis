@@ -44,7 +44,7 @@ namespace stannis {
         std::multiplies<std::uint_least32_t>());
 
     typedef std::uint_least64_t N_size_t;
-    std::fpos header_offset = std::ios::beg
+    std::uint_least32_t header_offset = std::ios::beg
       + sizeof(std::uint_least32_t) + sizeof(std::uint_least16_t)
       + sizeof(std::uint_least32_t) * ndim;
 
