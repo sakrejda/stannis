@@ -61,6 +61,15 @@ namespace stannis {
     const boost::filesystem::path path
   );
 
+  /* Gets version data. */
+  std::string get_version(
+    const boost::filesystem::path path
+  );
+
+  /* Gets samples */
+  std::vector<std::uint_least32_t> 
+  get_sample_dims(const boost::filesystem::path path);
+
 }
 
 #endif

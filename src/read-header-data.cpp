@@ -84,5 +84,36 @@ namespace stannis {
     return s;
   }
 
+  std::vector<std::uint_least32_t> get_sample_dimensions(
+    const boost::filesystem::path path
+  ) {
+    boost::filesystem::fstream stream(path);
+    std::uint_least32_t n_iterations;
+    stream.read((char*)(&n_iterations));
+    std::uint_least16_t ndim;
+    stream.read((char*)(&ndim), sizeof(std::uint_least16_t));
+    std::vector<std::uint_least32_t> dimensions(ndim);
+    stream.read((char*)(&ndim), sizeof(std::uint_least32_t) * ndim);
+    return dimensions;
+  }
+
+  std::vector<std::uint_least32_t> get_sample_draws(
+    const boost::filesystem::path path
+  ) {
+    // Read dims
+    boost::filesystem::fstream stream(path);
+    std::uint_least32_t n_iterations;
+    stream.read((char*)(&n_iterations));
+    std::uint_least16_t ndim;
+    stream.read((char*)(&ndim), sizeof(std::uint_least16_t));
+    std::vector<std::uint_least32_t> dimensions(ndim);
+    stream.read((char*)(&ndim), sizeof(std::uint_least32_t) * ndim);
+
+    // Read samples
+    // STUFF
+
+    return dimensions;
+  }
+
 }
 
