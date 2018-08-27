@@ -5,10 +5,13 @@
 #include <boost/filesystem/fstream.hpp>
 
 #include <iostream>
+#include <clocale>
+#include <locale>
 #include <cstdint>
 #include <vector>
 #include <string>
 #include <memory>
+#include <exception>
 #include <ios>
 
 namespace stannis {
@@ -60,16 +63,21 @@ namespace stannis {
 
     std::uint_least16_t p = 0;
     std::uint_least32_t i = 0;
-    std::vector<char> ds;
+    char buffer[100];
+    std::fill_n(buffer, 100, '_');
     double val;
-    char* c;
+    int bi = 0;
+    char* bj;
     while (head != end && *head != '#') {
       while (head != end && *head != ',' && *head != '\n') 
-        ds.push_back(*head++);
+        buffer[bi++] = *head++;
       if (head == end)
         return false;
-      val = std::strtod(&ds[0], &c);
-      ds.clear();
+      val = std::strtod(&buffer[0], &bj);
+      if (*bj != '_')
+	throw std::logic_error(std::string(buffer));
+      std::fill_n(buffer, 100, '_');
+      bi = 0;
       streams[p]->write((char*)(&val), sizeof(double));
       i++;
       if (i >= n_entries[p]) {

@@ -37,14 +37,13 @@ namespace stannis {
     boost::filesystem::fstream os(out_path, std::ofstream::out | std::ofstream::trunc);
     std::vector<double> values = get_draws(in_path);
 
-    std::size_t N = n_entries * n_iterations;
-    for (std::size_t i = 0; i < N ; ++i) {
-      std::size_t k = i % n_entries;  // entry
-      std::size_t m = i / n_entries;  // iteration
-      double value = values.at(m * n_entries + k);
-      os.write((char*)(&value), sizeof(double));
-      if (!os.good())
-	return false;
+    for (std::uint_least32_t k = 0; k < n_entries; ++k) {
+      for (std::uint_least32_t i = 0; i < n_iterations; ++i) {
+        double value = values.at(k + i * n_entries);
+        os.write((char*)(&value), sizeof(double));
+        if (!os.good())
+          return false;
+      }
     }
     return true;
   }
