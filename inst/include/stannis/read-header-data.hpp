@@ -66,9 +66,17 @@ namespace stannis {
     const boost::filesystem::path path
   );
 
-  /* Gets samples */
-  std::vector<std::uint_least32_t> 
-  get_sample_dims(const boost::filesystem::path path);
+  /* Read the dimensions of a single parameter from 
+   * header data. */
+  std::vector<std::uint_least32_t> get_dimensions(
+    const boost::filesystem::path dim_path,
+    const boost::filesystem::path name_path,
+    std::string name
+  );
+
+  /* Gets sample draws */
+  std::vector<double> get_draws(
+    const boost::filesystem::path draw_path);
 
 }
 

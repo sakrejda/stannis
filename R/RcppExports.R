@@ -5,3 +5,23 @@ rewrite <- function(source, root, tag, comment) {
     .Call('rewrite', PACKAGE = 'stannis', source, root, tag, comment)
 }
 
+get_draws <- function(file) {
+  .Call('get_draws', PACKAGE = 'stannis', file)
+}
+
+get_dimensions <- function(dim_path, name_path, name) {
+  .Call('get_dimensions', PACKAGE = 'stannis', dim_path, name_path, name) 
+}
+
+get_parameter <- function(root, name) {
+  if (!dir.exists(root) || length(root) != 1) 
+    stop("argument 'root' must be a path to a single directory.")
+  if (!is.character(name) || length(name) != 1)
+    stop("argument 'name' must be a length-1 character vector.")
+  parameter = .Call('get_parameter', PACKAGE = 'stannis', root, name) 
+  n_entries = prod(parameter[['dims']])
+  n_iterations = length(parameter[['data']]) / n_entries
+  parameter = array(data = parameter[['data']], dim = c(n_iterations, parameter[['dims']]))
+  return(parameter)
+}
+

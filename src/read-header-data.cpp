@@ -84,36 +84,30 @@ namespace stannis {
     return s;
   }
 
-  std::vector<std::uint_least32_t> get_sample_dimensions(
-    const boost::filesystem::path path
+  std::vector<std::uint_least32_t> get_dimensions(
+    const boost::filesystem::path dim_path,
+    const boost::filesystem::path name_path,
+    std::string name
   ) {
-    boost::filesystem::fstream stream(path);
-    std::uint_least32_t n_iterations;
-    stream.read((char*)(&n_iterations));
-    std::uint_least16_t ndim;
-    stream.read((char*)(&ndim), sizeof(std::uint_least16_t));
-    std::vector<std::uint_least32_t> dimensions(ndim);
-    stream.read((char*)(&ndim), sizeof(std::uint_least32_t) * ndim);
-    return dimensions;
+    std::vector<std::vector<std::uint_least32_t>> dimensions = 
+      get_dimensions(dim_path);
+    std::vector<std::string> names = get_names(name_path);
+    for (std::size_t i = 0; i < names.size(); ++i)
+      if (names[i] == name)
+	return dimensions[i];
+    throw std::invalid_argument("Name not found.");
   }
 
-  std::vector<std::uint_least32_t> get_sample_draws(
-    const boost::filesystem::path path
+  std::vector<double> get_draws(
+    const boost::filesystem::path draw_path
   ) {
-    // Read dims
-    boost::filesystem::fstream stream(path);
-    std::uint_least32_t n_iterations;
-    stream.read((char*)(&n_iterations));
-    std::uint_least16_t ndim;
-    stream.read((char*)(&ndim), sizeof(std::uint_least16_t));
-    std::vector<std::uint_least32_t> dimensions(ndim);
-    stream.read((char*)(&ndim), sizeof(std::uint_least32_t) * ndim);
-
-    // Read samples
-    // STUFF
-
-    return dimensions;
+    boost::filesystem::ifstream stream(draw_path, std::ifstream::in);
+    std::uintmax_t n_entries = boost::filesystem::file_size(draw_path) / sizeof(double);
+    std::vector<double> draws(n_entries);
+    stream.read((char*)(&draws[0]), n_entries * sizeof(double));
+    return draws; 
   }
+
 
 }
 

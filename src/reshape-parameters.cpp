@@ -1,4 +1,5 @@
 #include <stannis/reshape-parameters.hpp>
+#include <stannis/read-header-data.hpp>
 
 #include <boost/filesystem.hpp>
 
@@ -15,48 +16,34 @@ namespace stannis {
     const std::string & name,
     const boost::filesystem::path & root_
   ) {
-    boost::filesystem::path p_in(root_);
-    p_in /= name + ".bin";
-    boost::filesystem::path p_out(root_);
-    p_out /= name + "-reshape.bin";
-
-    boost::filesystem::fstream is(p_in);
-    boost::filesystem::fstream os(p_out, std::ofstream::out | std::ofstream::trunc);
-
-    std::uint_least32_t n_iterations;
-    is.read((char*)(&n_iterations), sizeof(n_iterations));
-    os.write((char*)(&n_iterations), sizeof(n_iterations));
-    if (!is.good() || !os.good())
-      return false;
-    std::uint_least16_t ndim;
-    is.read((char*)(&ndim), sizeof(ndim));
-    os.write((char*)(&ndim), sizeof(ndim));
-    if (!is.good() || !os.good())
-      return false;
-    std::vector<std::uint_least32_t> dimensions(ndim);
-    is.read((char*)(&dimensions[0]), sizeof(std::uint_least32_t) * ndim);
-    os.write((char*)(&dimensions[0]), sizeof(std::uint_least32_t) * ndim);
-    if (!is.good() || !os.good())
-      return false;
+    boost::filesystem::path in_path(root_);
+    in_path /= name + ".bin";
+    boost::filesystem::path out_path(root_);
+    out_path /= name + "-reshape.bin";
+    boost::filesystem::path name_path(root_);
+    name_path /= "names.bin";
+    boost::filesystem::path dimension_path(root_);
+    dimension_path /= "dimensions.bin";
+   
+    std::vector<std::uint_least32_t> dimensions = get_dimensions(
+      dimension_path, name_path, name);
 
     std::uint_least32_t n_entries = std::accumulate(
-        dimensions.begin(), dimensions.end(), 1, 
-        std::multiplies<std::uint_least32_t>());
+      dimensions.begin(), dimensions.end(), 1, 
+      std::multiplies<std::uint_least32_t>());
+    std::uint_least32_t n_iterations = 
+      (boost::filesystem::file_size(in_path) / sizeof(double)) / n_entries;
 
-    typedef std::uint_least64_t N_size_t;
-    std::uint_least32_t header_offset = std::ios::beg
-      + sizeof(std::uint_least32_t) + sizeof(std::uint_least16_t)
-      + sizeof(std::uint_least32_t) * ndim;
+    boost::filesystem::fstream os(out_path, std::ofstream::out | std::ofstream::trunc);
+    std::vector<double> values = get_draws(in_path);
 
-    N_size_t N = n_entries * n_iterations;
-    for (N_size_t i = 0; i < N ; ++i) {
-      N_size_t k = i % n_entries;  // entry
-      N_size_t m = i / n_entries;  // iteration
-      is.seekg(header_offset + sizeof(double) * (m * n_entries + k));
-      double value;
-      is.read((char*)(&value), sizeof(double));
+    std::size_t N = n_entries * n_iterations;
+    for (std::size_t i = 0; i < N ; ++i) {
+      std::size_t k = i % n_entries;  // entry
+      std::size_t m = i / n_entries;  // iteration
+      double value = values.at(m * n_entries + k);
       os.write((char*)(&value), sizeof(double));
-      if (!is.good() || !os.good())
+      if (!os.good())
 	return false;
     }
     return true;

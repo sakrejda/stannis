@@ -1,5 +1,6 @@
 #include <stannis/exporter.hpp>
 #include <stannis/rewrite.hpp>
+#include <stannis/read-header-data.hpp>
 
 #include <Rcpp.h>
 
@@ -21,8 +22,42 @@ RcppExport SEXP rewrite(SEXP source_, SEXP root_, SEXP tag_, SEXP comment_
   return result;
 }
 
+RcppExport SEXP get_draws(SEXP source_) {
+  boost::filesystem::path source = Rcpp::as<boost::filesystem::path>(source_);
+  std::vector<double> draws = stannis::get_draws(source);
+  Rcpp::NumericVector result = Rcpp::wrap(draws);
+  return result;
+}
+
+RcppExport SEXP get_dimensions(SEXP dim_path_, SEXP name_path_, SEXP name_) {
+  boost::filesystem::path dim_path = Rcpp::as<boost::filesystem::path>(dim_path_);
+  boost::filesystem::path name_path = Rcpp::as<boost::filesystem::path>(name_path_);
+  std::vector<std::string> name = Rcpp::as<std::vector<std::string>>(name_);
+  std::vector<uint> dims = stannis::get_dimensions(dim_path, name_path, name[0]);
+  Rcpp::NumericVector result = Rcpp::wrap(dims);
+  return result;
+}
+
+RcppExport SEXP get_parameter(SEXP root_, SEXP name_) {
+  boost::filesystem::path root = Rcpp::as<boost::filesystem::path>(root_);
+  boost::filesystem::path dim_path = Rcpp::as<boost::filesystem::path>(root_);
+  dim_path /= "dimensions.bin";
+  boost::filesystem::path name_path = Rcpp::as<boost::filesystem::path>(root_);
+  name_path /= "names.bin";
+  std::string name = Rcpp::as<std::vector<std::string>>(name_)[0];
+  std::vector<double> draws = stannis::get_draws(root /= name + "-reshape.bin");
+  std::vector<uint> dims = stannis::get_dimensions(dim_path, name_path, name);
+  return Rcpp::List::create(
+    Rcpp::Named("data") = draws,
+    Rcpp::Named("dims") = dims
+  );
+}
+
 static const R_CallMethodDef CallEntries[] = {
     {"rewrite", (DL_FUNC) &rewrite, 4},
+    {"get_draws", (DL_FUNC) &get_draws, 1},
+    {"get_dimensions", (DL_FUNC) &get_dimensions, 3},
+    {"get_parameter", (DL_FUNC) &get_parameter, 2},
     {NULL, NULL, 0}
 };
 
