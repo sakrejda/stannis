@@ -1,5 +1,5 @@
-#ifndef REWRITE_HPP
-#define REWRITE_HPP
+#ifndef REWRITE_STAN_CSV_HPP
+#define REWRITE_STAN_CSV_HPP
 
 #include <boost/filesystem.hpp>
 #include <boost/uuid/uuid.hpp>
@@ -18,11 +18,12 @@ namespace stannis {
    * @param comment string comment to insert into binary header
    * @return bool true iff the CmdStan format file was complete.
    */
-  bool rewrite(
+  bool rewrite_stan_csv(
     const boost::filesystem::path & source,
     const boost::filesystem::path & root,
     const boost::uuids::uuid & tag,
-    const std::string & comment
+    const std::string & comment,
+    const bool try_mass_matrix
   );
 }
 

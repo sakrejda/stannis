@@ -1,5 +1,5 @@
-#ifndef READ_DIMENSIONS_DATA_HPP
-#define READ_DIMENSIONS_DATA_HPP
+#ifndef READ_DIMENSION_DATA_HPP
+#define READ_DIMENSION_DATA_HPP
 
 #include <boost/filesystem.hpp>
 

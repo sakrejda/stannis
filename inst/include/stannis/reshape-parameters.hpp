@@ -11,19 +11,26 @@
 namespace stannis {
  
   /* Read parameters from a source file and reshape them 
-   * to binary files in a root directory.
+   * to binary files in a root directory.  Do this for all 
+   * parameters in the model.
    *
-   * @tparam type of the source stream
-   * @param source_stream stream to read text from
-   * @param dimensions dimension data about each parameter
    * @param root path to directory where binary files are written
-   * @param[out] n_iterations reference to variable for counting iterations
-   *        rewritten
-   * @return true if the last iteration written was complete.
+   * @return true if the rewrite is successful for all parameters.
    */
   bool reshape_parameters(
-    const std::string & name,
     const boost::filesystem::path & root_
+  );
+
+  /* Reshape parameter in file 'in' write to file 'out', use
+   * supplied dimensiosn.
+   *
+   * @param root path to directory where binary files are written.
+   * @return true if hte rewrite is successful.
+   */
+  bool reshape_one(
+    const boost::filesystem::path & in,
+    const boost::filesystem::path & out,
+    const std::vector<std::uint_least32_t> & dimensions
   );
 
 }

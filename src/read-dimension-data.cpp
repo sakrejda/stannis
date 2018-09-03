@@ -1,4 +1,4 @@
-#include <stannis/read-dimensions-data.hpp>
+#include <stannis/read-dimension-data.hpp>
 
 #include <boost/filesystem.hpp>
 #include <boost/filesystem/fstream.hpp>
