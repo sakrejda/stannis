@@ -38,14 +38,12 @@ RcppExport SEXP get_dimensions(SEXP dim_path_, SEXP name_path_) {
 }
 
 RcppExport SEXP get_parameter(SEXP root_, SEXP name_) {
-  boost::filesystem::path root = Rcpp::as<boost::filesystem::path>(root_);
-  boost::filesystem::path dim_path = Rcpp::as<boost::filesystem::path>(root_);
-  dim_path /= "dimensions.bin";
-  boost::filesystem::path name_path = Rcpp::as<boost::filesystem::path>(root_);
-  name_path /= "names.bin";
   std::string name = Rcpp::as<std::vector<std::string>>(name_)[0];
+  boost::filesystem::path root = Rcpp::as<boost::filesystem::path>(root_);
+  boost::filesystem::path dim_path(root);
+  dim_path /= name + "-dimensions.bin";
+  std::vector<uint> dims = stannis::get_reshape_dimensions(dim_path);
   std::vector<double> draws = stannis::get_draws(root /= name + "-reshape.bin");
-  std::vector<uint> dims = stannis::get_dimensions(dim_path, name_path, name);
   return Rcpp::List::create(
     Rcpp::Named("data") = draws,
     Rcpp::Named("dims") = dims
