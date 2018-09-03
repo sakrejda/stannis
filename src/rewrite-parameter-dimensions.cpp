@@ -1,13 +1,13 @@
-#include <stannis/write-parameter-dimensions.hpp>
+#include <stannis/rewrite-parameter-dimensions.hpp>
 
 #include <stannis/read-name-data.hpp>
 #include <stannis/read-dimension-data.hpp>
 
 #include <boost/filesystem.hpp>
+#include <boost/filesystem/fstream.hpp>
 
 #include <string>
 #include <vector>
-#include <algorithm>
 #include <numeric>
 #include <ios>
 

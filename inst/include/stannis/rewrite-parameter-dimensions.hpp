@@ -1,15 +1,10 @@
-#include <stannis/write-parameter-dimensions.hpp>
-
-#include <stannis/read-name-data.hpp>
-#include <stannis/read-dimension-data.hpp>
+#ifndef REWRITE_PARAMETER_DIMENSIONS_HPP
+#define REWRITE_PARAMETER_DIMENSIONS_HPP
 
 #include <boost/filesystem.hpp>
 
 #include <string>
-#include <vector>
-#include <algorithm>
-#include <numeric>
-#include <ios>
+#include <cstdint>
 
 namespace stannis {
 
@@ -19,10 +14,11 @@ namespace stannis {
    * @param root directory where binary files are written.
    * @return true if all rewrite are successful.
    */
-  bool write_parameter_dimensions(
+  bool rewrite_parameter_dimensions(
     const boost::filesystem::path & root_,
     std::uint_least32_t n_iterations
   );  
 
 }
 
+#endif

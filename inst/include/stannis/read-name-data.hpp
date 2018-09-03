@@ -1,5 +1,5 @@
-#ifndef READ_HEADER_DATA_HPP
-#define READ_HEADER_DATA_HPP
+#ifndef READ_NAME_DATA_HPP
+#define READ_NAME_DATA_HPP
 
 #include <boost/filesystem.hpp>
 

@@ -44,6 +44,16 @@ namespace stannis {
     const boost::filesystem::path path
   );
 
+  /* Read the dimension of a parameter from its
+   * dim file.  
+   *
+   * @param path to the parameter-specific dim file
+   * @return dimensions
+   */
+  std::vector<std::uint_least32_t> get_reshape_dimensions(
+    const boost::filesystem::path path
+  );
+
 
 }
 

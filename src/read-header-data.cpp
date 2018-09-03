@@ -20,18 +20,18 @@ namespace stannis {
     return s;
   }
 
-  std::vector<std::uint_least32_t> get_dimensions(
-    const boost::filesystem::path dim_path,
-    const boost::filesystem::path name_path,
-    std::string name
+  std::vector<std::uint_least32_t> get_version(
+    const boost::filesystem::path path
   ) {
-    std::vector<std::vector<std::uint_least32_t>> dimensions = 
-      get_dimensions(dim_path);
-    std::vector<std::string> names = get_names(name_path);
-    for (std::size_t i = 0; i < names.size(); ++i)
-      if (names[i] == name)
-	return dimensions[i];
-    throw std::invalid_argument("Name not found.");
+    boost::filesystem::fstream stream(path);
+    std::vector<std::uint_least32_t> versions;
+    versions.resize(4);
+    stream.seek(11 + stream.tellg());
+    stream.read((char*)(&s[0]), sizeof(std::uint_least32_t));
+    stream.read((char*)(&s[1]), sizeof(std::uint_least32_t));
+    stream.read((char*)(&s[2]), sizeof(std::uint_least32_t));
+    stream.read((char*)(&s[3]), sizeof(std::uint_least32_t));
+    return versions;
   }
 
 }

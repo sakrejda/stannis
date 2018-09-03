@@ -1,7 +1,14 @@
+#include <stannis/rewrite-stan-csv.hpp>
+#include <stannis/rewrite-header.hpp>
+#include <stannis/read-header-data.hpp>
+#include <stannis/rewrite-parameters.hpp>
+#include <stannis/reshape-parameters.hpp>
+#include <stannis/write-binary-header.hpp>
+
+#include <boost/filesystem.hpp>
 
 #include <iostream>
 #include <fstream>
-
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -9,14 +16,7 @@
 #include <numeric>
 #include <cstdint>
 
-#include <boost/filesystem.hpp>
 
-#include <stannis/rewrite-stan-csv.hpp>
-#include <stannis/rewrite-header.hpp>
-#include <stannis/read-header-data.hpp>
-#include <stannis/rewrite-parameters.hpp>
-#include <stannis/reshape-parameters.hpp>
-#include <stannis/write-binary-header.hpp>
 
 namespace stannis {
 

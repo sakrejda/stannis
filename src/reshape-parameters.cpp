@@ -1,6 +1,7 @@
 #include <stannis/reshape-parameters.hpp>
 
 #include <stannis/read-dimensions-data.hpp>
+#include <stannis/read-name-data.hpp>
 #include <stannis/read-parameter-data.hpp>
 
 #include <boost/filesystem.hpp>
