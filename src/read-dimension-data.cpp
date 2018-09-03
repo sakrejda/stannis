@@ -60,7 +60,7 @@ namespace stannis {
     const boost::filesystem::path path
   ) {
     boost::filesystem::fstream stream(path);
-    std::uint_least32_t n_iterations
+    std::uint_least32_t n_iterations;
     stream.read((char*)(&n_iterations), sizeof(n_iterations));
     std::uint_least32_t n_dim;
     stream.read((char*)(&n_dim), sizeof(n_dim));
@@ -68,6 +68,7 @@ namespace stannis {
     dimensions[0] = n_iterations;
     stream.read((char*)(&dimensions[1]), sizeof(std::uint_least32_t) * n_dim);
     return dimensions;
+  }
 
 }
 

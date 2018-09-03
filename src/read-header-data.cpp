@@ -26,7 +26,9 @@ namespace stannis {
     boost::filesystem::fstream stream(path);
     std::vector<std::uint_least32_t> versions;
     versions.resize(4);
-    stream.seek(11 + stream.tellg());
+    std::string s;
+    s.resize(11);
+    stream.read((char*)(&s[0]), 11);
     stream.read((char*)(&s[0]), sizeof(std::uint_least32_t));
     stream.read((char*)(&s[1]), sizeof(std::uint_least32_t));
     stream.read((char*)(&s[2]), sizeof(std::uint_least32_t));

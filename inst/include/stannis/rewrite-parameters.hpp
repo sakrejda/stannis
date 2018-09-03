@@ -11,6 +11,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <numeric>
 #include <exception>
 #include <ios>
 

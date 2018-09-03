@@ -15,16 +15,8 @@ namespace stannis {
   );
 
   /* Gets version data. */
-  std::string get_version(
+  std::vector<std::uint_least32_t> get_version(
     const boost::filesystem::path path
-  );
-
-  /* Read the dimensions of a single parameter from 
-   * header data. */
-  std::vector<std::uint_least32_t> get_dimensions(
-    const boost::filesystem::path dim_path,
-    const boost::filesystem::path name_path,
-    std::string name
   );
 
 }

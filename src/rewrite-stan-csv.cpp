@@ -1,9 +1,15 @@
+
 #include <stannis/rewrite-stan-csv.hpp>
 #include <stannis/rewrite-header.hpp>
-#include <stannis/read-header-data.hpp>
-#include <stannis/rewrite-parameters.hpp>
-#include <stannis/reshape-parameters.hpp>
+
 #include <stannis/write-binary-header.hpp>
+#include <stannis/read-header-data.hpp>
+#include <stannis/read-name-data.hpp>
+#include <stannis/read-dimension-data.hpp>
+
+#include <stannis/rewrite-parameters.hpp>
+#include <stannis/rewrite-parameter-dimensions.hpp>
+#include <stannis/reshape-parameters.hpp>
 
 #include <boost/filesystem.hpp>
 
@@ -26,7 +32,7 @@ namespace stannis {
     const boost::filesystem::path & root,
     const boost::uuids::uuid & tag,
     const std::string & comment,
-    const bool try_mass_matrix = false
+    const bool try_mass_matrix
   ) {
     // Stream from CmdStan file
     boost::filesystem::ifstream source_stream;
@@ -90,7 +96,7 @@ namespace stannis {
       return false;
 
     // Rewrite per-parameter dimensions files:
-    complete = write_parameter_dimensions(root, n_iterations);
+    complete = rewrite_parameter_dimensions(root, n_iterations);
     if (!complete)
       return false;
 

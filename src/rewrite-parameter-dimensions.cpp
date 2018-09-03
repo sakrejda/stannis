@@ -14,7 +14,7 @@
 namespace stannis {
 
   // See header file
-  bool write_parameter_dimensions(
+  bool rewrite_parameter_dimensions(
     const boost::filesystem::path & root_,
     std::uint_least32_t n_iterations
   ) { 
@@ -24,8 +24,8 @@ namespace stannis {
     dimensions_path /= "dimensions.bin";
 
     std::vector<std::string> names = get_names(name_path);
-    std::vector<std::uint_least32_t> dimensions 
-      = get_dimensions(dimension_path);
+    std::vector<std::vector<std::uint_least32_t>> dimensions 
+      = get_dimensions(dimensions_path);
 
     bool complete = true;
     for (int i = 0; i < names.size(); ++i) {
@@ -35,7 +35,7 @@ namespace stannis {
       boost::filesystem::fstream os(out_path, std::ofstream::out | std::ofstream::trunc);
       os.write((char*)(&n_iterations), sizeof(n_iterations));
       os.write((char*)(&n_dim), sizeof(n_dim));
-      os.write((char*)(&dimensions[i][0]), std::uint_least32_t * n_dim);
+      os.write((char*)(&dimensions[i][0]), sizeof(std::uint_least32_t) * n_dim);
       os.close();
     }
     return true;

@@ -2,8 +2,8 @@
 #include <stannis/rewrite-stan-csv.hpp>
 
 #include <stannis/read-header-data.hpp>
-#include <stannis/read-dimensions-data.hpp>
-#include <stannis/read-names-data.hpp>
+#include <stannis/read-dimension-data.hpp>
+#include <stannis/read-name-data.hpp>
 #include <stannis/read-parameter-data.hpp>
 
 #include <Rcpp.h>
@@ -14,6 +14,15 @@
 
 #include <string>
 #include <fstream>
+
+RcppExport SEXP hash_to_uuid(SEXP hash_) {
+  std::vector<std::string> hashes = Rcpp::as<std::vector<std::string>>(hash_);
+  std::string tag_string;
+  for (auto & s : hashes) 
+    tag_string.append(s);
+  boost::uuids::uuid tag = boost::uuids::name_generator_sha1(tag_string);
+  return Rcpp::wrap(tag);
+}
 
 RcppExport SEXP rewrite_stan_csv(SEXP source_, SEXP root_, SEXP tag_, SEXP comment_
 ) {
@@ -29,7 +38,7 @@ RcppExport SEXP rewrite_stan_csv(SEXP source_, SEXP root_, SEXP tag_, SEXP comme
 RcppExport SEXP get_dimensions(SEXP dim_path_, SEXP name_path_) {
   boost::filesystem::path dim_path = Rcpp::as<boost::filesystem::path>(dim_path_);
   boost::filesystem::path name_path = Rcpp::as<boost::filesystem::path>(name_path_);
-  std::vector<uint> dims = stannis::get_dimensions(dim_path);
+  std::vector<std::vector<uint>> dims = stannis::get_dimensions(dim_path);
   std::vector<std::string> names = stannis::get_names(name_path);
   Rcpp::List result;
   for (int i = 0; i < names.size(); ++i)
@@ -52,7 +61,7 @@ RcppExport SEXP get_parameter(SEXP root_, SEXP name_) {
 
 static const R_CallMethodDef CallEntries[] = {
     {"rewrite_stan_csv", (DL_FUNC) &rewrite_stan_csv, 4},
-    {"get_dimensions", (DL_FUNC) &get_dimensions, 3},
+    {"get_dimensions", (DL_FUNC) &get_dimensions, 2},
     {"get_parameter", (DL_FUNC) &get_parameter, 2},
     {NULL, NULL, 0}
 };

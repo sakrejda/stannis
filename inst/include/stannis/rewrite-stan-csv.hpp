@@ -23,7 +23,7 @@ namespace stannis {
     const boost::filesystem::path & root,
     const boost::uuids::uuid & tag,
     const std::string & comment,
-    const bool try_mass_matrix
+    const bool try_mass_matrix = false
   );
 }
 

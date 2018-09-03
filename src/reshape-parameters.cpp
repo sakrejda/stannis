@@ -1,6 +1,6 @@
 #include <stannis/reshape-parameters.hpp>
 
-#include <stannis/read-dimensions-data.hpp>
+#include <stannis/read-dimension-data.hpp>
 #include <stannis/read-name-data.hpp>
 #include <stannis/read-parameter-data.hpp>
 
@@ -24,7 +24,7 @@ namespace stannis {
     dimension_path /= "dimensions.bin";
   
     std::vector<std::string> names = get_names(name_path);
-    std::vector<std::uint_least32_t> dimensions 
+    std::vector<std::vector<std::uint_least32_t>> dimensions 
       = get_dimensions(dimension_path);
 
     bool complete = true;
@@ -33,7 +33,7 @@ namespace stannis {
       in_path /= names[i] + ".bin";
       boost::filesystem::path out_path(root_);
       out_path /= names[i] + "-reshape.bin";
-      complete = complete && reshape_one(in_path, out_path);
+      complete = complete && reshape_one(in_path, out_path, dimensions[i]);
       if (!complete)
         return false;
     }
