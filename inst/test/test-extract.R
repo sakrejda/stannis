@@ -2,13 +2,12 @@
 library(stannis)
 tag = "00000000-0000-0000-0000-000000000000"
 o = stannis:::rewrite(source = 'output.csv', root = 'binary', tag = tag, comment = "Krump")
-proportions = stannis:::get_parameter('binary', 'proportions')
+P = stannis:::get_parameter('binary', 'P')
 
-mp = proportions[1001:1050,,]
-mp[425720]
-mp[20,1:4,2129]
+m = rstan::read_stan_csv("output.csv")
+P_ = rstan::extract(m, pars = c("P"), permuted=FALSE)
 
-
+max_err = max(P[1001:1300,] - P_[,1,])
 
 
 

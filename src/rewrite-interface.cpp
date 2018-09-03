@@ -1,6 +1,10 @@
 #include <stannis/exporter.hpp>
 #include <stannis/rewrite.hpp>
+
 #include <stannis/read-header-data.hpp>
+#include <stannis/read-dimensions-data.hpp>
+#include <stannis/read-names-data.hpp>
+#include <stannis/read-parameter-data.hpp>
 
 #include <Rcpp.h>
 
@@ -19,13 +23,6 @@ RcppExport SEXP rewrite(SEXP source_, SEXP root_, SEXP tag_, SEXP comment_
   std::string comment = Rcpp::as<std::string>(comment_);
   bool complete = stannis::rewrite(source, root, tag, comment);
   Rcpp::RObject result = Rcpp::wrap(complete);
-  return result;
-}
-
-RcppExport SEXP get_draws(SEXP source_) {
-  boost::filesystem::path source = Rcpp::as<boost::filesystem::path>(source_);
-  std::vector<double> draws = stannis::get_draws(source);
-  Rcpp::NumericVector result = Rcpp::wrap(draws);
   return result;
 }
 
@@ -55,7 +52,6 @@ RcppExport SEXP get_parameter(SEXP root_, SEXP name_) {
 
 static const R_CallMethodDef CallEntries[] = {
     {"rewrite", (DL_FUNC) &rewrite, 4},
-    {"get_draws", (DL_FUNC) &get_draws, 1},
     {"get_dimensions", (DL_FUNC) &get_dimensions, 3},
     {"get_parameter", (DL_FUNC) &get_parameter, 2},
     {NULL, NULL, 0}
