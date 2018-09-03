@@ -26,12 +26,14 @@ RcppExport SEXP rewrite_stan_csv(SEXP source_, SEXP root_, SEXP tag_, SEXP comme
   return result;
 }
 
-RcppExport SEXP get_dimensions(SEXP dim_path_, SEXP name_path_, SEXP name_) {
+RcppExport SEXP get_dimensions(SEXP dim_path_, SEXP name_path_) {
   boost::filesystem::path dim_path = Rcpp::as<boost::filesystem::path>(dim_path_);
   boost::filesystem::path name_path = Rcpp::as<boost::filesystem::path>(name_path_);
-  std::vector<std::string> name = Rcpp::as<std::vector<std::string>>(name_);
-  std::vector<uint> dims = stannis::get_dimensions(dim_path, name_path, name[0]);
-  Rcpp::NumericVector result = Rcpp::wrap(dims);
+  std::vector<uint> dims = stannis::get_dimensions(dim_path);
+  std::vector<std::string> names = stannis::get_names(name_path);
+  Rcpp::List result;
+  for (int i = 0; i < names.size(); ++i)
+    result.push_back(dims[i], names[i]);
   return result;
 }
 
