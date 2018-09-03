@@ -16,7 +16,7 @@ namespace stannis {
     boost::filesystem::fstream stream(path);
     std::uint_least32_t n_parameters = 0;
     while (stream.good()) {
-      std::uint_least16_t ndim;
+      std::uint_least32_t ndim;
       stream.read((char*)(&ndim), sizeof(ndim));
       if (!stream.good())
         break;
@@ -26,13 +26,13 @@ namespace stannis {
     return n_parameters;
   }
 
-  std::vector<std::uint_least16_t> get_ndim(
+  std::vector<std::uint_least32_t> get_ndim(
     const boost::filesystem::path path
   ) {
     boost::filesystem::fstream stream(path);
-    std::vector<std::uint_least16_t> ndim_vec;
+    std::vector<std::uint_least32_t> ndim_vec;
     while (stream.good()) {
-      std::uint_least16_t ndim;
+      std::uint_least32_t ndim;
       stream.read((char*)(&ndim), sizeof(ndim));
       if (!stream.good())
         break;
@@ -47,7 +47,7 @@ namespace stannis {
   ) {
     boost::filesystem::fstream stream(path);
     std::vector<std::vector<std::uint_least32_t>> dimensions;
-    std::uint_least16_t ndim;
+    std::uint_least32_t ndim;
     while (stream.read((char*)(&ndim), sizeof(ndim))) {
       std::vector<std::uint_least32_t> d(ndim);
       stream.read((char*)(&d[0]), ndim * sizeof(std::uint_least32_t));

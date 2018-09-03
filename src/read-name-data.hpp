@@ -16,7 +16,7 @@ namespace stannis {
     boost::filesystem::fstream stream(path);
     std::vector<std::string> names;
     while (stream.good()) {
-      std::uint_least16_t L;
+      std::uint_least32_t L;
       stream.read((char*)(&L), sizeof(L));
       if (!stream.good())
         break;

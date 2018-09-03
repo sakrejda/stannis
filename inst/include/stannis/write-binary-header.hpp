@@ -9,9 +9,9 @@ namespace stannis {
 
   const char* magic = "Stantastic!";
   const std::uint_least32_t file_version = 1;
-  const std::uint_least16_t major_stan = 2;
-  const std::uint_least16_t minor_stan = 17;
-  const std::uint_least16_t patch_stan = 3;
+  const std::uint_least32_t major_stan = 2;
+  const std::uint_least32_t minor_stan = 17;
+  const std::uint_least32_t patch_stan = 3;
 
   template<class S>
   void write_stantastic_header(
@@ -30,7 +30,6 @@ namespace stannis {
 
     // UUID tag
     stream.write((char*)(&tag.data[0]), tag.static_size());
-    stream.flush(); 
 
     // Comment
     std::uint_least32_t L = comment.length();

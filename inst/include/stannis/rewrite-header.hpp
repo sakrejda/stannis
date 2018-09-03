@@ -124,7 +124,7 @@ namespace stannis {
     S2 & dim_stream
   ) {
     std::string dim_string(dim_string_);
-    std::uint_least16_t L = name.length();
+    std::uint_least32_t L = name.length();
     name_stream.write((char*)(&L), sizeof(L));
     name_stream.write((char*)(&name[0]), L);
 
@@ -141,7 +141,7 @@ namespace stannis {
 	pos += nc + 1;
       } 
     }
-    std::uint_least16_t ndim = dims.size();
+    std::uint_least32_t ndim = dims.size();
     dim_stream.write((char*)(&ndim), sizeof(ndim));
     dim_stream.write((char*)(&dims[0]), ndim * sizeof(std::uint_least32_t));
     return name_stream.good() && dim_stream.good();

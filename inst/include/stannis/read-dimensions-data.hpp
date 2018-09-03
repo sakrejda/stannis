@@ -30,7 +30,7 @@ namespace stannis {
    * @param path path to the dimensions file.
    * @return number of dimensions in each parameter
    */
-  std::vector<std::uint_least16_t> get_ndim(
+  std::vector<std::uint_least32_t> get_ndim(
     const boost::filesystem::path path
   ); 
 

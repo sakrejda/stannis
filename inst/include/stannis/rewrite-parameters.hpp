@@ -61,7 +61,7 @@ namespace stannis {
         std::multiplies<std::uint_least32_t>());
     }
 
-    std::uint_least16_t p = 0;
+    std::uint_least32_t p = 0;
     std::uint_least32_t i = 0;
     char buffer[100];
     std::fill_n(buffer, 100, '_');

@@ -67,7 +67,7 @@ namespace stannis {
     std::uint_least32_t n_iterations = 0;
     std::vector<std::string> names 
       = get_names(names_path);
-    std::vector<std::uint_least16_t> ndims 
+    std::vector<std::uint_least32_t> ndims 
       = get_ndim(dim_path);
     std::vector<std::vector<std::uint_least32_t>> dimensions
       = get_dimensions(dim_path);
