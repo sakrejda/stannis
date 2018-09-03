@@ -58,6 +58,18 @@ RcppExport SEXP get_dimensions(SEXP dim_path_, SEXP name_path_) {
   END_RCPP
 }
 
+RcppExport SEXP get_parameter_dimensions(SEXP root_, SEXP name_) {
+  BEGIN_RCPP
+  std::string name = Rcpp::as<std::vector<std::string>>(name_)[0];
+  boost::filesystem::path root = Rcpp::as<boost::filesystem::path>(root_);
+  boost::filesystem::path dim_path(root);
+  dim_path /= name + "-dimensions.bin";
+  std::vector<uint> dims = stannis::get_reshape_dimensions(dim_path);
+  return Rcpp::wrap(dims);
+  END_RCPP
+}
+
+
 RcppExport SEXP get_parameter(SEXP root_, SEXP name_) {
   BEGIN_RCPP
   std::string name = Rcpp::as<std::vector<std::string>>(name_)[0];
@@ -77,6 +89,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"hash_to_uuid", (DL_FUNC) &hash_to_uuid, 1},
     {"rewrite_stan_csv", (DL_FUNC) &rewrite_stan_csv, 4},
     {"get_dimensions", (DL_FUNC) &get_dimensions, 2},
+    {"get_parameter_dimensions", (DL_FUNC) &get_parameter_dimensions, 2},
     {"get_parameter", (DL_FUNC) &get_parameter, 2},
     {NULL, NULL, 0}
 };
