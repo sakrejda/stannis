@@ -3,22 +3,29 @@
 #' dimensions and paths to outptu.
 #' 
 #' @param root where the run directories are rooted
+#' @param hash hash for this run.
 #' @param uuid UUID for this run.
 #' @param control_file what the .yaml with run settings is called
 #' @param sample_file what the sample output file is called
 #' @param diagnostic_file file name for diagnostic output
 #' @return list with run description
 #' @export
-read_run = function(root='.', uuid = NULL, control_file = 'finalized.yaml', 
+read_run = function(root='.', hash = NULL, uuid = NULL, control_file = 'finalized.yaml', 
   sample_file = 'output.csv', diagnostic_file = 'diagnostics.csv'
 ) {
-  if (!is.null(uuid)) 
+  if (!is.null(uuid) && is.null(hash)) {
     run_root = file.path(root, uuid)
-  else
+    uuid = uuid
+  } else if (!is.null(hash) && is.null(uuid)) {
+    run_root = file.path(root, uuid(hash))
+    uuid = uuid(hash)
+  } else if (is.null(hash) && is.null(uuid)) {
     run_root = root
+    uuid = uuid(run_root)
+  } else {
+    stop("Use either 'hash' or 'uuid' but not both.")
+  }
 
-  uuid = as_uuid(run_root)
-   
   sample_file_path = file.path(run_root, sample_file)
   if (!file.exists(sample_file_path))
     stop("Sample file is missing.")
