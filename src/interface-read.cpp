@@ -1,6 +1,6 @@
 #include <stannis/exporter.hpp>
-#include <stannis/rewrite-stan-csv.hpp>
 
+#include <stannis/interface-read.hpp>
 #include <stannis/read-header-data.hpp>
 #include <stannis/read-dimension-data.hpp>
 #include <stannis/read-name-data.hpp>
@@ -9,41 +9,9 @@
 #include <Rcpp.h>
 
 #include <boost/filesystem.hpp>
-#include <boost/uuid/uuid.hpp>
-#include <boost/uuid/name_generator.hpp>
-#include <boost/uuid/uuid_io.hpp>
 
 #include <string>
 #include <fstream>
-
-RcppExport SEXP hash_to_uuid(SEXP hash_) {
-  BEGIN_RCPP
-  std::vector<std::string> hashes = Rcpp::as<std::vector<std::string>>(hash_);
-  std::string tag_string;
-  for (auto & s : hashes) 
-    tag_string.append(s);
-  boost::uuids::name_generator_sha1 gen(boost::uuids::ns::oid());
-  boost::uuids::uuid tag = gen(tag_string);
-  std::string t = boost::uuids::to_string(tag);
-  return Rcpp::CharacterVector(t);
-  END_RCPP
-}
-
-RcppExport SEXP rewrite_stan_csv(SEXP source_, SEXP root_, SEXP tag_, SEXP comment_
-) {
-  BEGIN_RCPP
-  boost::filesystem::path source = Rcpp::as<boost::filesystem::path>(source_);
-  boost::filesystem::path root = Rcpp::as<boost::filesystem::path>(root_);
-  boost::uuids::uuid tag = Rcpp::as<boost::uuids::uuid>(tag_);
-  std::vector<std::string> comment = Rcpp::as<std::vector<std::string>>(comment_);
-  std::string comment_string;
-  for (auto & s : comment) 
-    comment_string.append(s);
-  bool complete = stannis::rewrite_stan_csv(source, root, tag, comment_string);
-  Rcpp::RObject result = Rcpp::wrap(complete);
-  return result;
-  END_RCPP
-}
 
 RcppExport SEXP get_dimensions(SEXP dim_path_, SEXP name_path_) {
   BEGIN_RCPP
@@ -84,19 +52,4 @@ RcppExport SEXP get_parameter(SEXP root_, SEXP name_) {
   );
   END_RCPP
 }
-
-static const R_CallMethodDef CallEntries[] = {
-    {"hash_to_uuid", (DL_FUNC) &hash_to_uuid, 1},
-    {"rewrite_stan_csv", (DL_FUNC) &rewrite_stan_csv, 4},
-    {"get_dimensions", (DL_FUNC) &get_dimensions, 2},
-    {"get_parameter_dimensions", (DL_FUNC) &get_parameter_dimensions, 2},
-    {"get_parameter", (DL_FUNC) &get_parameter, 2},
-    {NULL, NULL, 0}
-};
-
-RcppExport void R_init_stannis(DllInfo *dll) {
-    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
-    R_useDynamicSymbols(dll, FALSE);
-}
-
 
