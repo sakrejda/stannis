@@ -5,11 +5,14 @@
 \title{Read a single Stannis run, rewrite to binary format, and return 
 dimensions and paths to outptu.}
 \usage{
-read_run(root = ".", uuid = NULL, control_file = "finalized.yaml",
-  sample_file = "output.csv", diagnostic_file = "diagnostics.csv")
+read_run(root = ".", hash = NULL, uuid = NULL,
+  control_file = "finalized.yaml", sample_file = "output.csv",
+  diagnostic_file = "diagnostics.csv")
 }
 \arguments{
 \item{root}{where the run directories are rooted}
+
+\item{hash}{hash for this run.}
 
 \item{uuid}{UUID for this run.}
 
