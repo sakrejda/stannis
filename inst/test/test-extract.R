@@ -2,15 +2,23 @@
 library(stannis)
 tag = "00000000-0000-0000-0000-000000000000"
 
-system.time({
-  o = stannis::rewrite_stan_csv(source = 'output.csv', root = 'binary', tag = tag, comment = "Krump")
-  P = stannis::get_parameter('binary', 'P')
-})
 
-system.time({
-  m = rstan::read_stan_csv("output.csv")
-  P_ = rstan::extract(m, pars = c("P"), permuted=FALSE)
-})
+timing_stannis <- vector(mode = 'numeric', length = 100)
+timing_rstan <- vector(mode = 'numeric', length = 100)
+
+for (i in 1:100) {
+  timing_stannis[i] = system.time({
+    o = stannis::rewrite_stan_csv(source = 'output.csv', root = 'binary', tag = tag, comment = "Krump")
+    P = stannis::get_parameter('binary', 'P')
+  })[3]
+  
+  timing_rstan[i] = system.time({
+    m = rstan::read_stan_csv("output.csv")
+    P_ = rstan::extract(m, pars = c("P"), permuted=FALSE)
+  })[3]
+}
+
+
 
 max_err = max(P[1001:1300,] - P_[,1,])
 
