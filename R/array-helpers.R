@@ -1,45 +1,65 @@
 
 
-#' Create margin labels following a pattern
+#' Normalize an array's labels.
 #'
 #' @param A array to create labels for (or matrix).
-#' @return list of margin labels
+#' @return array with consitent dimnames.
 #' @export
-name_margins = function(A) {
-  n_dim = dim(A) %>% length()
-  l = list()
-  groups = paste0("group_", 1:(n_dim - 1))
-  for (i in 1:length(groups)) {
-    group = groups[i]
-    l[[group]] = as.character(1:(dim(A)[i + 1]))
-  }
-  return(l)
-}
+normalize_margin_names = function(A) {
+  dims = dim(A) 
+  n_dim = length(dims)
+  dnl = dimnames(A)
+  if (is.null(dnl))
+    dnl = vector(mode = "list", length = n_dim)
 
-#' Create labelled samples.
-#'
-#' @param array array of samples extracted from sample file set
-#' @param labels list with a named elements for each array margin
-#'        and each element is a data frame of groupings to join with
-#'        that margin's index. 
-#' @return list with a component for a matrix of values (one group
-#'         per row, one iteration per column), and a data.frame
-#'         with string labels for each row.
-#' @export
-label = function(A, labels = NULL) {
-  n_dim = dim(A) %>% length
-  margins = name_margins(A)
-  lf = matrix(data = A, ncol = dim(A)[1], byrow=TRUE)
-  dimnames(lf) = list(group = 1:nrow(lf), iteration = 1:ncol(lf))
-  grouping = do.call(what = expand.grid, 
-    args = c(margins, list(stringsAsFactors=FALSE)))
-  if (!is.null(labels)) {
-    for (group in names(grouping)) {
-      grouping = dplyr::left_join(grouping, labels[[group]], by = group)
+  dn = names(dnl)
+  if (is.null(dn))
+    dn = vector(mode = 'character', length = n_dim)
+  for (i in 1:n_dim) {
+    missing_name_i = (dn[i] == "")
+    if (missing_name_i) {
+      dn[i] = paste("group", i, sep = "_")
     }
   }
-  return(list(values = lf, grouping = grouping))  ## FIXME: Future proper type.
+  names(dnl) = dn
+
+  for (i in 1:n_dim) {
+    missing_j_names = is.null(dnl[[i]])
+    if (missing_j_names)
+      dnl[[i]] = as.character(1:dims[i])
+  }
+  dimnames(A) = dnl
+  return(A)
 }
+
+#' Replace array dimensionality by explicit long-format data labels.
+#' 
+#' @param A array to process
+#' @param ... further args passed to "data.frame"
+#' @return data frame with all array data in long format.
+#' @export
+flatten_array = function(A, ...) {
+  A = normalize_margin_names(A)
+  labels = do.call(what = expand.grid, args = c(dimnames(A), list(stringsAsFactors = FALSE)))
+  dim(A) = NULL
+  A = data.frame(labels, value = A, stringsAsFactors = FALSE)
+  return(A)
+}
+
+#' Take a numeric sequence and force it to sort properly as a character
+#' sequence by padding to length.
+#'
+#' @param x numeric sequence
+#' @return sequence of strings padded out to the same length
+#' @export
+padded_sequence = function(x) {
+  wd = nchar(x)
+  mw = max(wd)
+  pw = paste0(sapply(wd, function(w, mw) paste(rep("0", mw - w), collapse = ""), mw = mw), x)
+  return(pw)
+}
+
+
 
 #' Summarize iterations to estimates!
 #'
