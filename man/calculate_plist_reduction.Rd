@@ -5,8 +5,9 @@
 \title{Calculate Potential Scale Reduction Factor (PSRF) or 
 other per-parameter-scalar summary.}
 \usage{
-calculate_plist_reduction(x, f = split_rhat_rfun, drop = c("stepsize__",
-  "treedepth__", "n_leapfrog__", "divergent__", "iteration"))
+calculate_plist_reduction(x, f = split_rhat_rfun,
+  drop = c("stepsize__", "treedepth__", "n_leapfrog__", "divergent__",
+  "iteration"))
 }
 \arguments{
 \item{set}{the chains to operate on.}
