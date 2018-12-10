@@ -52,10 +52,9 @@ compile_model <- function(args) {
   file.copy(from = model_path, to = binary_dir, overwrite = TRUE)
   cmdstan_dir = find_cmdstan(args)
   sys::exec_wait(cmd = "make", 
-    args = paste("-C", cmdstan_dir, binary_path),
+    args = c("-C", cmdstan_dir, binary_path),
     std_out = file.path(binary_dir, "compilation-output.txt"),
-    std_err = file.path(binary_dir, "compilation-errors.txt"),
-    wait = TRUE)
+    std_err = file.path(binary_dir, "compilation-errors.txt"))
   if (file.exists(binary_path)) {
     return(binary_path)                           
   } else {
