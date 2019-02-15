@@ -34,6 +34,7 @@ find_cmdstan <- function(args) {
 #' according to a hash (just return the path).
 #' 
 #' @param args an argument tree
+#' @importFrom sys exec_wait
 #' @return path to the binary of the compiled model.
 compile_model <- function(args) {
   binary_dir <- get_binary_dir(args)
@@ -50,11 +51,10 @@ compile_model <- function(args) {
     return(binary_path)
   file.copy(from = model_path, to = binary_dir, overwrite = TRUE)
   cmdstan_dir = find_cmdstan(args)
-  system2(command = "make", 
-    args = paste("-C", cmdstan_dir, binary_path),
-    stdout = file.path(binary_dir, "compilation-output.txt"),
-    stderr = file.path(binary_dir, "compilation-errors.txt"),
-    wait = TRUE)
+  sys::exec_wait(cmd = "make", 
+    args = c("-C", cmdstan_dir, binary_path),
+    std_out = file.path(binary_dir, "compilation-output.txt"),
+    std_err = file.path(binary_dir, "compilation-errors.txt"))
   if (file.exists(binary_path)) {
     return(binary_path)                           
   } else {

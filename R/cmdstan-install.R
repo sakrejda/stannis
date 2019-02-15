@@ -6,33 +6,33 @@
 get_cmdstan = function(config_file) {
   config = yaml::yaml.load_file(input = config_file)
   if (!dir.exists(config[['cmdstan_dir']])) {
-    system2(command = "git", args = c("clone", 
+    sys::exec_wait(cmd = "git", args = c("clone", 
       "-b", config[['cmdstan_branch']], 
       config[['cmdstan_repository']],
       config[['cmdstan_dir']]))
   } else {
-    system2(command = "git", args = c(
+    sys::exec_wait(cmd = "git", args = c(
     "-C", config[['cmdstan_dir']], 
     "pull", "origin", config[['cmdstan_branch']]))
   }
-  system2(command = "git", args = c(
+  sys::exec_wait(cmd = "git", args = c(
     "-C", config[['cmdstan_dir']], 
-    "submodule", "update", "--init", "--recursive")) 
+    "submodule", "update", "--init", "--recursive"))
   return(config)
 }
 
 #' Build `stanc` in the cmdstan directory.
 #'
 #' @param config_file .yaml file listing how to install CmdStan.
+#' @importFrom sys exec_wait
 #' @return config object of install.
 build_cmdstan = function(config_file) {
   config = yaml::yaml.load_file(input = config_file)
   target_dir = config[['stannis_dir']]
-  system2(command = config[['cmdstan_cmd']], 
+  sys::exec_background(cmd = config[['cmdstan_cmd']], 
     args = c(config[['cmdstan_options']], "bin/stanc"), 
-    stdout = file.path(config[['stannis_dir']], "cmdstan-build.log"),
-    stderr = file.path(config[['stannis_dir']], "cmdstan-build.err"),
-    wait = FALSE)
+    std_out = file.path(config[['stannis_dir']], "cmdstan-build.log"),
+    std_err = file.path(config[['stannis_dir']], "cmdstan-build.err"))
   return(config)
 }
 
