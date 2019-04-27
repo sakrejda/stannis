@@ -60,28 +60,4 @@ path_split <- function(path, separator='/') {
 #' @export
 extension = function(s) strsplit(x = s, split = '\\.') %>% last()
 
-#' Subset a vector of names to keep only sampler/internal parameters.
-#'
-#' @param s vector of names
-#' @return s, including names ending in '__'.
-#' @export
-internal_parameters <- function(s) s[grepl(pattern='__$', x=s)]
-
-#' Subset a vector of names to keep only model parameters.
-#'
-#' @param s vector of names
-#' @return s, excluding names ending in '__'.
-#' @export
-model_parameters <- function(s) s[!grepl(pattern='__$', x=s)]
-
-
-#' Find number at the head of a string.
-#'
-#' @param s string
-#' @return number only.
-#' @export
-get_initial_number <- function(s) {
-  s <- gsub(pattern=' [^0-9]*', x=s, replacement='')
-  return(s)
-}
 

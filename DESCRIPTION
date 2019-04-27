@@ -1,4 +1,4 @@
-Package: stannis
+Package: stas
 Type: Package
 Title: Handles output from Stan (mc-stan.org)
 Version: 1.1

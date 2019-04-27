@@ -1,253 +1,153 @@
-#' Basic method to return one CmdStan argument.
-#'
-#' @param name name of the parameter to add.
-#' @param value value the parameter takes.
-#' @return combined string argument.
-#' @export
-push_arg = function(name, value) paste0(name, "=", value)
-
-#' Basic method to pull out arguments by name
-#' from a list.
-#'
-#' @param args (potentially nested) list containing arguments.
-#' @param names vector of named arguments to pull out.
-#' @return turn vector of arguments as strings
-#' @export
-push_simple = function(args, names) {
-  args_out = ""
-  for (name in names) {
-    if (name %in% names(args)) {
-      args_out = paste(args_out, push_arg(name, args[[name]]))
-    }
-  }
-  return(args_out)
-}
- 
-#' Add a data argument.
-#'
-#' @param args argument list
-#' @return argument string.
-#' @export
-push_data = function(args) {
-  if (!('data' %in% names(args)))
-    return("")
-  args = args[['data']]
-  stub = paste("data", push_simple(args, 'file'))
-  return(stub)
+full_eval = function(l) {
+  if (is.language(l))
+    return(full_eval(eval(l)))
+  for (i in seq_along(l))
+    if (is.language(l[[i]]))
+      l[[i]] = full_eval(l[[i]])
+  return(l)
 }
 
-#' Add a random init seed argument
-#'
-#' @param args argument list
-#' @return argument string
-#' @export
-push_random = function(args) {
-  if (!('random' %in% names(args)))
-    return("")
-  args = args[['random']]
-  stub = paste("random", push_simple(args, 'seed'))
-  return(stub)
+id = function(x = 0) return(x)
+
+random = function(seed = stas:::seed()) {
+  return(list(seed = seed))
 }
 
-#' Add output arguments.
-#'
-#' @param args argument list
-#' @return argument string
-#' @export
-push_output = function(args) {
-  if (!('output' %in% names(args))) 
-    return("")
-  args = args[['output']]
-  stub = paste("output", push_simple(args,
-    c('file', 'diagnostic_file', 'refresh')))
-  return(stub)
+seed = function(x = NULL) {
+  if (is.null(x)) 
+    x = sample(10^4, 1)
+  return(x)
 }
 
-#' add nuts sampler sub-arguments.
-#'
-#' @param args argument list
-#' @return argument string
-#' @export
-push_nuts = function(args) {
-  if (!("nuts" %in% names(args))) 
-    return("")
-  args = args[['nuts']]
-  stub = push_simple(args, 'max_depth')
-  return(stub)
+output = function(file = 'output.csv', diagnostic_file = 'diagnostics.csv') {
+  o = list(file = file, diagnostic_file = diagnostic_file)
+  return(o)
 }
 
-#' add static HMC sub-arguments.
-#'
-#' @param args argument list
-#' @return argument string
-#' @export
-push_static = function(args) {
-  if (!("static" %in% names(args)))
-    return("")
-  args = args[['static']]
-  stub = push_simple(args, 'int_time')
-  return(stub)
+adapt = function(engaged = TRUE, gamma = .05, delta = 0.8, kappa = 0.75, 
+                 t0 = 10, init_buffer = 75, term_buffer = 50, window = 25
+) {
+  o = as.list(full_eval(formals(adapt)))
+  if (!missing(engaged))
+    o[['engaged']] = engaged
+  if (!missing(gamma))
+    o[['gamma']] = gamma
+  if (!missing(delta))
+    o[['delta']] = delta
+  if (!missing(kappa))
+    o[['kappa']] = kappa
+  if (!missing(t0))
+    o[['t0']] = t0
+  if (!missing(init_buffer))
+    o[['init_buffer']] = init_buffer
+  if (!missing(term_buffer))
+    o[['term_buffer']] = term_buffer
+  if (!missing(window))
+    o[['window']] = window
+  return(o)
 }
 
-#' Add HMC engine sub-arguments
-#'
-#' @param args argument list
-#' @return argument string
-#' @export
-push_engine = function(args) {
-  if (!("engine" %in% names(args)))
-    return("")
-  stub = paste0("engine=", args[['engine']]) 
-  if (args[['engine']] == 'nuts')
-    stub = paste(stub, push_nuts(args))
-  else if (args[['engine']] == 'static')
-    stub = paste(stub, push_static(args))
-  else
-    stop(paste0("Engine ',", args[['engine']], 
-      "', is not an engine for HMC in Stan."))
-  return(stub)
+static = function(int_time = 2 * pi) {
+  return(int_time)
 }
 
-#' Add HMC metric sub-arguments.
-#'
-#' @param args argument list
-#' @return argument string
-#' @export
-push_metric = function(args) {
-  if (!('metric' %in% names(args)))
-    return("")
-  metrics = c('unit_e', 'diag_e', 'dense_e')
-  if (args[['metric']] %in% metrics)
-    stub = push_simple(args, 'metric')
-  else {
-    msg = paste0("HMC metric '", args[['metric']], "' ",
-		  "is not an option in CmdStan.")
-  }
-  return(stub)
+nuts = function(max_depth = 10) {
+  o = list(max_depth = 10)
+  return(o)
 }
 
-#' Add HMC algorithm sub-arguments
-#'
-#' @param args argument list
-#' @return argument string
-#' @export
-push_hmc = function(args) {
-  if (!("hmc" %in% names(args)))
-    return("")
-  args = args[['hmc']]
-  stub = paste(
-    push_engine(args),
-    push_metric(args), 
-    push_simple(args, c('metric_file', 'stepsize', 'stepsize_jitter')))
-  return(stub)
+hmc = function(int_time = stas:::nuts(), metric = 'diagonal', stepsize = 1, stepsize_jitter = 0) {
+  o = full_eval(formals(hmc))
+  if (!missing(int_time))
+    o[['int_time']] = int_time
+  if (!missing(metric))
+    o[['metric']] = metric
+  if (!missing(stepsize))
+    o[['stepsize']] = stepsize
+  if (!missing(stepsize_jitter))
+    o[['stepsize_jitter']] = stepsize_jitter
+  o[['algorithm']] = 'hmc'
+  return(o)
 }
 
-#' Add fixed_param non-sampler arguments.
-#'
-#' @param args argument list
-#' @return argument string
-#' @export
-push_fixed = function(args) {
-  return("")
+sampling = function(num_samples = 1000, num_warmup = 1000, save_warmup = FALSE,
+                  thin = 1, adapt = stas:::adapt(), algorithm = stas:::hmc()) {
+  o = as.list(full_eval(formals(sampling)))
+  if (!missing(num_samples))
+    o[['num_samples']] = num_samples
+  if (!missing(num_warmup))
+    o[['num_warmup']] = num_warmup
+  if (!missing(save_warmup))
+    o[['save_warmup']] = save_warmup
+  if (!missing(thin))
+    o[['thin']] = thin
+  if (!missing(adapt))
+    o[['adapt']] = adapt
+  if (!missing(algorithm))
+    o[['algorithm']] = algorithm
+  o[['method']] = "sampling"
+  return(o)
 }
 
-#' Add algorithm sub-arguments.
-#'
-#' @param args argument list
-#' @return argument string
-#' @export
-push_algorithm = function(args) {
-  if (!("algorithm" %in% names(args))) 
-    return("")
-  stub = paste0("algorithm=", args[['algorithm']])
-  if (args[['algorithm']] == 'hmc')
-    stub = paste(stub, push_hmc(args))
-  else if (args[['algorithm']] == 'fixed')
-    stub = paste(stub, push_fixed(args))
-  else { 
-    msg = paste0("Sampling algorithm '", args[['algorithm']], "' ",
-		  "is not an option in CmdStan.")
-    stop(msg)
-  }
-  return(stub)
+stan_binary = function(...) {
+  if (length(list(...)) == 0)
+    return('default_binary')
+  else 
+    return(as.vector(list(...)))
 }
 
-#' Add sampler adaptation sub-arguments.
-#'
-#' @param args argument list
-#' @return argument string
-#' @export
-push_adapt = function(args) {
-  if (!('adapt' %in% names(args)))
-    return("")
-  args = args[['adapt']]
-  stub = paste("adapt", push_simple(args,
-        c('engaged', 'gamma', 'delta', 'kappa', 't0', 
-          'init_buffer', 'term_buffer', 'window')))
-  return(stub)
+sample = function(binary = stas:::stan_binary(), id = stas:::id(), 
+                  data = 'data.rdump', init = 'init.rdump',
+                  random = stas:::random(), output = stas:::output(),
+                  num_samples = NULL,
+                  num_warmup = NULL,
+                  save_warmup = NULL,
+                  thin = NULL,
+                  adapt = NULL,
+                  algorithm = NULL
+) {
+  s = sampling()
+  if (!is.null(num_samples))
+    s$num_samples = num_samples
+  if (!is.null(num_warmup))
+    s$num_warmup = num_warmup
+  if (!is.null(save_warmup))
+    s$save_warmup = save_warmup
+  if (!is.null(thin))
+    s$thin = thin
+  if (!is.null(adapt))
+    s$adapt = adapt
+  if (!is.null(algorithm))
+    s$algorithm = algorithm
+  o = list(eval(binary), eval(id), s, data, init, eval(output))
+  o = as.list(full_eval(o))
+  return(o)
 }
 
-#' Add sampler sub-arguments
-#'
-#' @param args argument list
-#' @return argument string
-#' @export
-push_sample = function(args) {
-  args = args[['sample']]
-  stub = paste(
-    push_simple(args, c('num_samples', 'num_warmup', 'save_warmup', 'thin')),
-    push_adapt(args), push_algorithm(args))
-  return(stub)
-}
-
-push_optimize = function(...) stop("Optimization interface not implemented.")
-push_variational = function(...) stop("VI interface not implemented.")
-push_diagnose = function(...) stop("Diagnose interface not implemented.")
+run = function(binary, method = stas:::sampling(), id = stas:::id(), 
+               data = 'data.rdump', init = 'init.rdump',
+               random = stas:::random(), output = stas:::output()
+) {
   
-push_method = function(args) {
-  if ('method' %in% names(args)) {
-    stub = paste0("method=", args[['method']])
-  } else {
-    stub = paste0("method=", "sample")
-  }
 
-  if (args[['method']] == 'sample') {
-    stub = paste(stub, push_sample(args))
-  } else if (args[['method']] == 'optimize') {
-    stub = paste(stub, push_optimize(args))
-  } else if (args[['method']] == 'variational') {
-    stub = paste(stub, push_variational(args))
-  } else if (args[['method']] == 'diagnose') {
-    stub = paste(stub, push_diagnose(args))
-  } else {
-    msg = paste0("Method '", args[['method']], "'",
-      " is not an option in CmdStan.")
-    stop(msg)
-  }
-  return(stub)
+}
+
+push_arg = function(args, name, value) paste(args, paste0(name, "=", value))
+
+push_method = function(x) {
+  
+}
+
+cmdstan_cmdline = function(x) {
+  options = push_arg("", 'method', attr(x[['method']], 'type'))
+  if (attr(x[['method']], 'type') == 'sampling') {
+    options = push_arg(options, 'thin', x[['method']][['sampling']][['thin']])
+    options = push_arg(options, 'adapt', x[['method']][['sampling']][['num_warmup']])
+    options = push_arg(options, 'algorithm', x[['method']][['sampling']][['num_warmup']])
+       
+    
 }
 
 
-#' Create a flat string of CmdStan arguments based on a 
-#' sub-tree of an arg-tree.
-#'
-#' @param ... arguments to run CmdStan with.
-#' @return string of arguments to CmdStan.
-#' @export
-construct_cmdline = function(...) {
-  args = list(...)
 
-  if (!('binary' %in% names(args))) {
-    stop("Arguments must include path to binary in 'binary'.")
-  } else {
-    binary = args[['binary']]
-  }
 
-  cmd = paste(binary, push_method(args), 
-    push_simple(args, 'id'),
-    push_data(args), 
-    push_simple(args, 'init'),
-    push_random(args), 
-    push_output(args))
-  return(cmd)
-}
