@@ -1,26 +1,43 @@
 full_eval = function(l) {
-  if (is.language(l))
+  if (is.language(l)) {
     return(full_eval(eval(l)))
-  for (i in seq_along(l))
-    if (is.language(l[[i]]))
-      l[[i]] = full_eval(l[[i]])
+  } else if (is.list(l)) {
+    l = lapply(l, function(ll) full_eval(eval(ll)))
+    l[sapply(l, is.null)] = NULL
+  }
   return(l)
 }
 
-id = function(x = 0) return(x)
+id = function(x = 1) return(x)
 
 random = function(seed = stas:::seed()) {
-  return(list(seed = seed))
+  o = list('random', seed = seed)
+  return(o)
 }
 
 seed = function(x = NULL) {
   if (is.null(x)) 
-    x = sample(10^4, 1)
+    x = base:::sample(10^4, 1)
   return(x)
 }
 
+data = function(file = NULL) {
+  if (is.null(file))
+    return(NULL)
+  o = list('data', file = file)
+  return(o)
+}
+
+init = function(radius = 2, file = NULL) {
+  if (is.null(file)) {
+    return(list(init = radius))
+  } else {
+    return(list(init = file))
+  }
+}
+
 output = function(file = 'output.csv', diagnostic_file = 'diagnostics.csv') {
-  o = list(file = file, diagnostic_file = diagnostic_file)
+  o = list('output', file = file, diagnostic_file = diagnostic_file)
   return(o)
 }
 
@@ -28,6 +45,7 @@ adapt = function(engaged = TRUE, gamma = .05, delta = 0.8, kappa = 0.75,
                  t0 = 10, init_buffer = 75, term_buffer = 50, window = 25
 ) {
   o = as.list(full_eval(formals(adapt)))
+  o = c(list('adapt', o))
   if (!missing(engaged))
     o[['engaged']] = engaged
   if (!missing(gamma))
@@ -48,31 +66,46 @@ adapt = function(engaged = TRUE, gamma = .05, delta = 0.8, kappa = 0.75,
 }
 
 static = function(int_time = 2 * pi) {
-  return(int_time)
-}
-
-nuts = function(max_depth = 10) {
-  o = list(max_depth = 10)
+  o = list(engine = 'static', int_time = int_time)
   return(o)
 }
 
-hmc = function(int_time = stas:::nuts(), metric = 'diagonal', stepsize = 1, stepsize_jitter = 0) {
+nuts = function(max_depth = 10) {
+  o = list(engine = 'nuts', max_depth = max_depth)
+  return(o)
+}
+
+hmc = function(
+  engine = stas:::nuts(), 
+  metric = 'diag_e', 
+  stepsize = 1, 
+  stepsize_jitter = 0
+) {
   o = full_eval(formals(hmc))
-  if (!missing(int_time))
-    o[['int_time']] = int_time
+  o = c(list(algorithm = 'hmc'), o)
+  if (!missing(engine))
+    o[['engine']] = engine
   if (!missing(metric))
     o[['metric']] = metric
   if (!missing(stepsize))
     o[['stepsize']] = stepsize
   if (!missing(stepsize_jitter))
     o[['stepsize_jitter']] = stepsize_jitter
-  o[['algorithm']] = 'hmc'
   return(o)
 }
 
-sampling = function(num_samples = 1000, num_warmup = 1000, save_warmup = FALSE,
-                  thin = 1, adapt = stas:::adapt(), algorithm = stas:::hmc()) {
+sampling = function(
+  algorithm = stas:::hmc(), 
+  num_samples = 1000, 
+  num_warmup = 1000, 
+  save_warmup = FALSE,
+  thin = 1, 
+  adapt = stas:::adapt()
+) {
   o = as.list(full_eval(formals(sampling)))
+  o = c(list(method = 'sample'), o)
+  if (!missing(algorithm))
+    o[['algorithm']] = algorithm
   if (!missing(num_samples))
     o[['num_samples']] = num_samples
   if (!missing(num_warmup))
@@ -83,21 +116,20 @@ sampling = function(num_samples = 1000, num_warmup = 1000, save_warmup = FALSE,
     o[['thin']] = thin
   if (!missing(adapt))
     o[['adapt']] = adapt
-  if (!missing(algorithm))
-    o[['algorithm']] = algorithm
-  o[['method']] = "sampling"
   return(o)
 }
 
 stan_binary = function(...) {
-  if (length(list(...)) == 0)
-    return('default_binary')
-  else 
-    return(as.vector(list(...)))
+  if (length(list(...)) == 0) {
+    o = 'default_binary'
+  } else { 
+    o = as.vector(list(...))
+  }
+  return(o)
 }
 
 sample = function(binary = stas:::stan_binary(), id = stas:::id(), 
-                  data = 'data.rdump', init = 'init.rdump',
+                  data = stas:::data(), init =  NULL,
                   random = stas:::random(), output = stas:::output(),
                   num_samples = NULL,
                   num_warmup = NULL,
@@ -119,35 +151,70 @@ sample = function(binary = stas:::stan_binary(), id = stas:::id(),
     s$adapt = adapt
   if (!is.null(algorithm))
     s$algorithm = algorithm
-  o = list(eval(binary), eval(id), s, data, init, eval(output))
+  o = list(eval(binary), id = eval(id), s)
+  o[['data']] = eval(data)
+  o[['init']] = init
+  o[['output']] = eval(output)
   o = as.list(full_eval(o))
   return(o)
 }
 
-run = function(binary, method = stas:::sampling(), id = stas:::id(), 
-               data = 'data.rdump', init = 'init.rdump',
+configure_run = function(binary = stas:::stan_binary(), 
+               method = stas:::sampling(), id = stas:::id(), 
+               data = stas:::data(), init = stas:::init(),
                random = stas:::random(), output = stas:::output()
 ) {
-  
-
+  o = as.list(full_eval(formals(run)))
+  if (!missing(binary))
+    o[['binary']] = binary
+  if (!missing(method))
+    o[['method']] = method
+  if (!missing(id))
+    o[['id']] = id
+  if (!missing(data))
+    o[['data']] = stas:::data(file = data) 
+  if (!missing(init)) {
+    if (is.list(init)) {
+      o[['init']] = init
+    } else if (!is.na(as.numeric(init))) {
+      o[['init']] = stas:::init(radius = as.numeric(init))
+    } else if (file.exists(init)) {
+      o[['init']] = stas:::init(file = init)
+    } else {
+      stop("'init' values is not numeric and is not an existing file.")
+    }
+  }
+  if (!missing(random))
+    o[['random']] = random
+  if (!missing(output))
+    o[['output']] = output
+  names(o)[1] = ""
+  return(o)
 }
 
-push_arg = function(args, name, value) paste(args, paste0(name, "=", value))
-
-push_method = function(x) {
-  
+stringify_cmdline = function(x) {
+  cmd = ""
+  for (i in 1:length(x)) {
+    if (is.logical(x[[i]])) {
+      if (x[[i]]) {
+        x[[i]] = 1
+      } else {
+        x[[i]] = 0
+      }
+    }
+    if (is.list(x[[i]])) {
+      x[[i]] = stringify_cmdline(x[[i]])
+      cmd = paste(cmd, x[[i]])
+    } else {
+      if (!is.null(names(x)) && names(x)[i] != "") {
+        cmd = paste(cmd, paste(names(x)[i], x[i], sep = '='))
+      } else {
+        cmd = paste(cmd, x[i])
+      }
+    }
+  }
+  return(cmd)
 }
-
-cmdstan_cmdline = function(x) {
-  options = push_arg("", 'method', attr(x[['method']], 'type'))
-  if (attr(x[['method']], 'type') == 'sampling') {
-    options = push_arg(options, 'thin', x[['method']][['sampling']][['thin']])
-    options = push_arg(options, 'adapt', x[['method']][['sampling']][['num_warmup']])
-    options = push_arg(options, 'algorithm', x[['method']][['sampling']][['num_warmup']])
-       
-    
-}
-
 
 
 
