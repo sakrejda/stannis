@@ -33,11 +33,13 @@ find_cmdstan <- function(args) {
 #' the stashed model is the same as the to-be-compiled model
 #' according to a hash (just return the path).
 #' 
-#' @param args an argument tree
+#' @param configuration, result of stan:::sample or similar
 #' @return path to the binary of the compiled model.
+#'
+#' ###FIXME: IS BROKEN FOR NEW ARG STRUCTURE
 compile_model <- function(args) {
-  binary_dir <- get_binary_dir(args)
-  model_path = find_model(args)
+  binary_dir <- get_binary_dir(configuration)
+  model_path = normalizePath(stringify_binary(configuration))
   new_hash = openssl::sha256(x = file(model_path))
   target_model_path = file.path(binary_dir, paste0(args[['model_name']], '.stan'))
   if (file.exists(target_model_path)) {

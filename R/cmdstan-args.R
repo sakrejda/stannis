@@ -24,7 +24,7 @@ seed = function(x = NULL) {
 data = function(file = NULL) {
   if (is.null(file))
     return(NULL)
-  o = list('data', file = file)
+  o = list('data', file = normalizePath(file))
   return(o)
 }
 
@@ -151,11 +151,16 @@ sample = function(binary = stas:::stan_binary(), id = stas:::id(),
     s$adapt = adapt
   if (!is.null(algorithm))
     s$algorithm = algorithm
+  if (!missing(data) && is.character(data))
+    data = stas:::data(file = data)
+  if (!missing(init) && is.na(as.numeric(init)))
+    init = stas:::init(file = init)
   o = list(eval(binary), id = eval(id), s)
   o[['data']] = eval(data)
   o[['init']] = init
   o[['output']] = eval(output)
   o = as.list(full_eval(o))
+  o[[1]] = gsub('^[ ]*', '', o[[1]]) 
   return(o)
 }
 
@@ -192,7 +197,9 @@ configure_run = function(binary = stas:::stan_binary(),
   return(o)
 }
 
-stringify_cmdline = function(x) {
+stringify_binary = function(x) x[[1]]
+
+stringify_impl = function(x) {
   cmd = ""
   for (i in 1:length(x)) {
     if (is.logical(x[[i]])) {
@@ -203,7 +210,7 @@ stringify_cmdline = function(x) {
       }
     }
     if (is.list(x[[i]])) {
-      x[[i]] = stringify_cmdline(x[[i]])
+      x[[i]] = stringify_impl(x[[i]])
       cmd = paste(cmd, x[[i]])
     } else {
       if (!is.null(names(x)) && names(x)[i] != "") {
@@ -213,6 +220,14 @@ stringify_cmdline = function(x) {
       }
     }
   }
+  return(cmd)
+}
+
+stringify_arguments = function(x) {
+  cmd = stringify_impl(x)
+  if (substr(cmd, 1, 1) == " ")
+    cmd = substr(cmd, 2, nchar(cmd))
+  cmd = gsub('^[^ ]*[ ]', '', cmd)
   return(cmd)
 }
 
