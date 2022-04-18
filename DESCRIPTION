@@ -16,3 +16,4 @@ Suggests:
     rappdirs
 LinkingTo: Rcpp (>= 0.12.0), BH
 RoxygenNote: 6.1.1
+SystemRequirements: C++17
