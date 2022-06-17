@@ -1,5 +1,5 @@
-PKG_CPPFLAGS = -I"../inst/include" -I"." -I"/usr/include" -O3 -DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_DECLTYPE -DBOOST_DISABLE_ASSERTS -std=gnu++1z -mmacosx-version-min=10.15 -Wl,--no-undefined,--no-allow-shlib-undefined
-PKG_LIBS =-L"/usr/lib/x86_64-linux-gnu" -l"boost_filesystem" -l"boost_system"
+PKG_CPPFLAGS = -I"../inst/include" -I"." -O3 -DBOOST_RESULT_OF_USE_TR1 -DBOOST_NO_DECLTYPE -DBOOST_DISABLE_ASSERTS
+PKG_LIBS = -l"boost_filesystem" -l"boost_system"
 CXX_STD = CXX17
 
 
